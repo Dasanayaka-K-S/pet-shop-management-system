@@ -1,44 +1,62 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-public class Appoinment {
+@Table(name = "appointment_table")
+public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("appointment_id")
     private int appointment_id;
 
-    private String appointment_date;
-    private String reason;
-    private  String status;
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "pet_id", referencedColumnName = "pet_id")
-    @JsonBackReference
     private Pet pet;
 
-//    @OneToMany
-//    @JoinColumn(name = "vet_id" , referencedColumnName = "vet_id")
-//    @JsonBackReference
-//    private List<Vet> vets;
+    @ManyToOne
+    @JoinColumn(name = "vet_id", referencedColumnName = "vet_id")
+    private Vet vet;
 
-    public Appoinment(int appointment_id,  String appointment_date, String reason, String status, Pet pet, List<Vet> vets) {
+    @JsonProperty("appointment_date")
+    private LocalDateTime appointment_date;
+
+    private String reason;
+    private String status; // Scheduled, Completed, Cancelled
+
+    // Transient fields for frontend display
+    @Transient
+    @JsonProperty("petName")
+    private String petName;
+
+    @Transient
+    @JsonProperty("vetName")
+    private String vetName;
+
+    @Transient
+    @JsonProperty("pet_id")
+    private Integer petIdForJson;
+
+    @Transient
+    @JsonProperty("vet_id")
+    private Integer vetIdForJson;
+
+    public Appointment() {
+    }
+
+    public Appointment(int appointment_id, Pet pet, Vet vet, LocalDateTime appointment_date,
+                       String reason, String status) {
         this.appointment_id = appointment_id;
-
+        this.pet = pet;
+        this.vet = vet;
         this.appointment_date = appointment_date;
         this.reason = reason;
         this.status = status;
-        this.pet = pet;
-//        this.vets = vets;
     }
 
-    public Appoinment() {
-
-    }
-
+    // Getters and Setters
     public int getAppointment_id() {
         return appointment_id;
     }
@@ -47,12 +65,35 @@ public class Appoinment {
         this.appointment_id = appointment_id;
     }
 
+    public Pet getPet() {
+        return pet;
+    }
 
-    public String getAppointment_date() {
+    public void setPet(Pet pet) {
+        this.pet = pet;
+        if (pet != null) {
+            this.petName = pet.getPet_name();
+            this.petIdForJson = pet.getPet_id();
+        }
+    }
+
+    public Vet getVet() {
+        return vet;
+    }
+
+    public void setVet(Vet vet) {
+        this.vet = vet;
+        if (vet != null) {
+            this.vetName = vet.getVet_name();
+            this.vetIdForJson = vet.getVet_id();
+        }
+    }
+
+    public LocalDateTime getAppointment_date() {
         return appointment_date;
     }
 
-    public void setAppointment_date(String appointment_date) {
+    public void setAppointment_date(LocalDateTime appointment_date) {
         this.appointment_date = appointment_date;
     }
 
@@ -72,19 +113,47 @@ public class Appoinment {
         this.status = status;
     }
 
-    public Pet getPet() {
-        return pet;
+    public String getPetName() {
+        return petName;
     }
 
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setPetName(String petName) {
+        this.petName = petName;
     }
 
-//    public List<Vet> getVets() {
-//        return vets;
-//    }
+    public String getVetName() {
+        return vetName;
+    }
 
-//    public void setVets(List<Vet> vets) {
-//        this.vets = vets;
-//    }
+    public void setVetName(String vetName) {
+        this.vetName = vetName;
+    }
+
+    public Integer getPetIdForJson() {
+        return petIdForJson;
+    }
+
+    public void setPetIdForJson(Integer petIdForJson) {
+        this.petIdForJson = petIdForJson;
+    }
+
+    public Integer getVetIdForJson() {
+        return vetIdForJson;
+    }
+
+    public void setVetIdForJson(Integer vetIdForJson) {
+        this.vetIdForJson = vetIdForJson;
+    }
+
+    @Override
+    public String toString() {
+        return "Appointment{" +
+                "appointment_id=" + appointment_id +
+                ", pet=" + (pet != null ? pet.getPet_id() : "null") +
+                ", vet=" + (vet != null ? vet.getVet_id() : "null") +
+                ", appointment_date=" + appointment_date +
+                ", reason='" + reason + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

@@ -30,5 +30,11 @@ public class ownerService {
         return ownerRepo.save(owner);
     }
 
+    public Owner deleteOwner(int id) {
+        Owner owner = ownerRepo.findById(id).orElse(null);
+        ownerRepo.delete(owner);
+        return owner;
+    }
+
 
 }

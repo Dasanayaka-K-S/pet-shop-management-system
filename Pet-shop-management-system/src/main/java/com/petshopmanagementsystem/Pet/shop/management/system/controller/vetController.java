@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/app")
+@CrossOrigin(origins = "http://localhost:3000")
 public class vetController {
 
     @Autowired
@@ -34,5 +35,12 @@ public class vetController {
     public Vet updateVet(@RequestBody Vet vet){
         return vetService.updateVet(vet);
     }
+
+    @DeleteMapping("/deleteVet/{id}")
+    public void deleteVet(@PathVariable int id){
+        vetService.deleteVetById(id);
+        System.out.println("Delete Vet Success..");
+    }
+
 
 }

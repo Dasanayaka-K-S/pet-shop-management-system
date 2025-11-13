@@ -136,6 +136,52 @@ const App = () => {
     ]);
   }, []);
 
+  useEffect(() => {
+    const fetchBackendData = async () => {
+      try {
+        const [ownersRes, petsRes, vetsRes] = await Promise.all([
+          fetch('/api/app/getOwners'),
+          fetch('/api/app/getPets'),
+          fetch('/api/app/getVets'),
+        ]);
+
+        if (!ownersRes.ok || !petsRes.ok || !vetsRes.ok) {
+          throw new Error('One or more API requests failed');
+        }
+
+        const [ownersData, petsData, vetsData] = await Promise.all([
+          ownersRes.json(),
+          petsRes.json(),
+          vetsRes.json(),
+        ]);
+
+        // Optionally map backend fields -> UI fields if names differ
+        // Example mapping (adjust according to your backend model):
+        const mappedOwners = ownersData.map(o => ({
+          ownerId: o.ownerId ?? o.owner_id ?? o.id,
+          name: o.name ?? `${o.first_name ?? ''} ${o.last_name ?? ''}`.trim(),
+          ...o,
+        }));
+
+        const mappedPets = petsData.map(p => ({
+          petId: p.petId ?? p.id,
+          ownerId: p.ownerId ?? p.owner_id,
+          ownerName: p.ownerName ?? p.ownerName /* or compute from owners */,
+          ...p,
+        }));
+
+        setOwners(mappedOwners);
+        setPets(mappedPets);
+        setVets(vetsData);
+      } catch (err) {
+        console.error('Failed to load backend data', err);
+        // optional: fall back to demo data here
+      }
+    };
+
+    fetchBackendData();
+  }, []);
+
   const getPetName = (id) => pets.find((p) => p.petId === id)?.name || "Unknown";
   const getVetName = (id) => vets.find((v) => v.vet_id === id)?.name || "Unknown";
 

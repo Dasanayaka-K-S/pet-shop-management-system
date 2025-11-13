@@ -1,5 +1,5 @@
 // src/pages/Veterinarians.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import Modal from "../components/Modal";
 import "../App.css";
@@ -8,8 +8,10 @@ const Veterinarians = ({ vets, setVets }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
   const [form, setForm] = useState({
-    name: "",
+    vet_name: "",
     specialization: "",
     phone: "",
     email: "",
@@ -18,7 +20,7 @@ const Veterinarians = ({ vets, setVets }) => {
   });
 
   const columns = [
-    { Header: "Name", accessor: "name" },
+    { Header: "Name", accessor: "vet_name" },
     { Header: "Specialization", accessor: "specialization" },
     { Header: "Phone", accessor: "phone" },
     { Header: "Email", accessor: "email" },
@@ -26,11 +28,30 @@ const Veterinarians = ({ vets, setVets }) => {
     { Header: "Availability", accessor: "availability" },
   ];
 
-  // --- Handlers ---
+  // Fetch veterinarians on component mount
+  useEffect(() => {
+    fetchVets();
+  }, []);
+
+  const fetchVets = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:8080/api/app/getVets");
+      if (!res.ok) throw new Error("Failed to fetch vets");
+      const data = await res.json();
+      setVets(data);
+    } catch (err) {
+      console.error("Failed to load vets", err);
+      alert("Failed to load veterinarians. Please check if the backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openAdd = () => {
     setEditing(null);
     setForm({
-      name: "",
+      vet_name: "",
       specialization: "",
       phone: "",
       email: "",
@@ -43,7 +64,7 @@ const Veterinarians = ({ vets, setVets }) => {
   const openEdit = (item) => {
     setEditing(item);
     setForm({
-      name: item.name,
+      vet_name: item.vet_name,
       specialization: item.specialization,
       phone: item.phone,
       email: item.email,
@@ -53,28 +74,108 @@ const Veterinarians = ({ vets, setVets }) => {
     setModalOpen(true);
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = async (item) => {
     if (!window.confirm("Delete veterinarian?")) return;
-    setVets(vets.filter((v) => v.vet_id !== item.vet_id));
+    
+    try {
+      setLoading(true);
+      // Note: You need to add this DELETE endpoint to your Spring Boot controller
+      const res = await fetch(`http://localhost:8080/api/app/deleteVet/${item.vet_id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error("Failed to delete veterinarian");
+      
+      // Update local state
+      setVets(vets.filter((v) => v.vet_id !== item.vet_id));
+      alert("Veterinarian deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete veterinarian", err);
+      alert("Failed to delete veterinarian. Please add a DELETE endpoint in your Spring Boot controller.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = () => {
-    if (!form.name.trim()) return;
-
-    if (editing) {
-      setVets(
-        vets.map((v) =>
-          v.vet_id === editing.vet_id ? { ...v, ...form } : v
-        )
-      );
-    } else {
-      setVets([
-        ...vets,
-        { ...form, vet_id: Date.now() },
-      ]);
+  const handleSubmit = async (e) => {
+    // Check if e exists and has preventDefault
+    if (e && e.preventDefault) {
+      e.preventDefault();
     }
 
-    setModalOpen(false);
+    if (!form.vet_name.trim()) {
+      alert("Veterinarian name is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      if (editing) {
+        // Update existing veterinarian
+        const updatedVet = {
+          vet_id: editing.vet_id,
+          vet_name: form.vet_name,
+          specialization: form.specialization,
+          phone: form.phone,
+          email: form.email,
+          experience_years: form.experience_years,
+          availability: form.availability,
+          created_at: editing.created_at,
+          updated_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
+
+        const res = await fetch("http://localhost:8080/api/app/updateVet", {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedVet),
+        });
+
+        if (!res.ok) throw new Error("Failed to update veterinarian");
+        
+        const data = await res.json();
+        
+        // Update local state
+        setVets(vets.map((v) => (v.vet_id === editing.vet_id ? data : v)));
+        alert("Veterinarian updated successfully!");
+      } else {
+        // Add new veterinarian
+        const newVet = {
+          vet_name: form.vet_name,
+          specialization: form.specialization,
+          phone: form.phone,
+          email: form.email,
+          experience_years: form.experience_years,
+          availability: form.availability,
+          created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
+
+        const res = await fetch("http://localhost:8080/api/app/addVet", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newVet),
+        });
+
+        if (!res.ok) throw new Error("Failed to save veterinarian");
+        
+        const data = await res.json();
+        
+        // Update local state
+        setVets([...vets, data]);
+        alert("Veterinarian added successfully!");
+      }
+
+      setModalOpen(false);
+    } catch (err) {
+      console.error("Failed to save veterinarian", err);
+      alert("Failed to save veterinarian. Please check your backend connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filtered = vets.filter((v) =>
@@ -83,10 +184,11 @@ const Veterinarians = ({ vets, setVets }) => {
     )
   );
 
-  // --- UI ---
   return (
     <div className="main-content page-container">
       <h2 className="page-title">Veterinarians</h2>
+
+      {loading && <div className="loading-indicator">Loading...</div>}
 
       <DataTable
         title="Veterinarians"
@@ -103,16 +205,13 @@ const Veterinarians = ({ vets, setVets }) => {
         isOpen={modalOpen}
         title={editing ? "Edit Veterinarian" : "Add Veterinarian"}
         onCancel={() => setModalOpen(false)}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        onSubmit={handleSubmit}
       >
         <input
           className="form-input"
           placeholder="Full Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          value={form.vet_name}
+          onChange={(e) => setForm({ ...form, vet_name: e.target.value })}
           required
         />
         <input
@@ -131,6 +230,7 @@ const Veterinarians = ({ vets, setVets }) => {
         />
         <input
           className="form-input"
+          type="email"
           placeholder="Email Address (abc@gmail.com)"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}

@@ -1,5 +1,5 @@
 // src/Pages/Owners.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DataTable from "../components/DataTable";
 import Modal from "../components/Modal";
 import "../App.css";
@@ -8,36 +8,51 @@ const Owners = ({ owners, setOwners }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
+    owner_name: "",
+    owner_email: "",
+    owner_phone: "",
+    owner_address: "",
   });
 
   // Columns shown in table
   const columns = [
-    { Header: "First Name", accessor: "first_name" },
-    { Header: "Last Name", accessor: "last_name" },
-    { Header: "Email", accessor: "email" },
-    { Header: "Phone", accessor: "phone" },
-    { Header: "Address", accessor: "address" },
-    { Header: "City", accessor: "city" },
+    { Header: "Name", accessor: "owner_name" },
+    { Header: "Email", accessor: "owner_email" },
+    { Header: "Phone", accessor: "owner_phone" },
+    { Header: "Address", accessor: "owner_address" },
     { Header: "Created At", accessor: "created_at" },
   ];
+
+  // Fetch owners on component mount
+  useEffect(() => {
+    fetchOwners();
+  }, []);
+
+  const fetchOwners = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:8080/api/app/getOwners");
+      if (!res.ok) throw new Error("Failed to fetch Owners");
+      const data = await res.json();
+      setOwners(data);
+    } catch (err) {
+      console.error("Failed to load Owners", err);
+      alert("Failed to load owners. Please check if the backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openAdd = () => {
     setEditing(null);
     setForm({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
+      owner_name: "",
+      owner_email: "",
+      owner_phone: "",
+      owner_address: "",
     });
     setModalOpen(true);
   };
@@ -45,56 +60,130 @@ const Owners = ({ owners, setOwners }) => {
   const openEdit = (item) => {
     setEditing(item);
     setForm({
-      first_name: item.first_name,
-      last_name: item.last_name,
-      email: item.email,
-      phone: item.phone,
-      address: item.address,
-      city: item.city,
+      owner_name: item.owner_name,
+      owner_email: item.owner_email,
+      owner_phone: item.owner_phone,
+      owner_address: item.owner_address,
     });
     setModalOpen(true);
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = async (item) => {
     if (!window.confirm("Delete owner?")) return;
-    setOwners(owners.filter((o) => o.owner_id !== item.owner_id));
+    
+    try {
+      setLoading(true);
+      // Note: Your backend doesn't have a delete endpoint yet
+      // You'll need to add this to your Spring Boot controller:
+      // @DeleteMapping("/deleteOwner/{id}")
+      // public void deleteOwner(@PathVariable Long id) { ownerService.deleteOwner(id); }
+      
+      const res = await fetch(`http://localhost:8080/api/app/deleteOwner/${item.owner_id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error("Failed to delete owner");
+      
+      // Update local state
+      setOwners(owners.filter((o) => o.owner_id !== item.owner_id));
+      alert("Owner deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete owner", err);
+      alert("Failed to delete owner. Please add a DELETE endpoint in your Spring Boot controller.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    // Check if e exists and has preventDefault
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
 
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      alert("First and Last Name are required");
+    if (!form.owner_name.trim()) {
+      alert("Name is required");
       return;
     }
 
-    const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+    try {
+      setLoading(true);
+      
+      if (editing) {
+        // Update existing owner
+        const updatedOwner = {
+          owner_id: editing.owner_id,
+          owner_name: form.owner_name,
+          owner_email: form.owner_email,
+          owner_phone: form.owner_phone,
+          owner_address: form.owner_address,
+          created_at: editing.created_at,
+          updated_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
 
-    if (editing) {
-      setOwners(
-        owners.map((o) =>
-          o.owner_id === editing.owner_id ? { ...o, ...form } : o
-        )
-      );
-    } else {
-      setOwners([
-        ...owners,
-        { ...form, owner_id: Date.now(), created_at: now },
-      ]);
+        const res = await fetch("http://localhost:8080/api/app/updateOwner", {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedOwner),
+        });
+
+        if (!res.ok) throw new Error("Failed to update owner");
+        
+        const data = await res.json();
+        
+        // Update local state
+        setOwners(owners.map((o) => (o.owner_id === editing.owner_id ? data : o)));
+        alert("Owner updated successfully!");
+      } else {
+        // Add new owner
+        const newOwner = {
+          owner_name: form.owner_name,
+          owner_email: form.owner_email,
+          owner_phone: form.owner_phone,
+          owner_address: form.owner_address,
+          created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
+
+        const res = await fetch("http://localhost:8080/api/app/saveOwner", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newOwner),
+        });
+
+        if (!res.ok) throw new Error("Failed to save owner");
+        
+        const data = await res.json();
+        
+        // Update local state
+        setOwners([...owners, data]);
+        alert("Owner added successfully!");
+      }
+
+      setModalOpen(false);
+    } catch (err) {
+      console.error("Failed to save owner", err);
+      alert("Failed to save owner. Please check your backend connection.");
+    } finally {
+      setLoading(false);
     }
-
-    setModalOpen(false);
   };
 
   // Search filter
   const filtered = owners.filter((o) =>
-    Object.values(o)
-      .some((v) => String(v).toLowerCase().includes(searchTerm.toLowerCase()))
+    Object.values(o).some((v) =>
+      String(v).toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   return (
     <div className="main-content page-container">
       <h2 className="page-title">Owners</h2>
+
+      {loading && <div className="loading-indicator">Loading...</div>}
 
       <DataTable
         title="Owners"
@@ -114,48 +203,34 @@ const Owners = ({ owners, setOwners }) => {
         onSubmit={handleSubmit}
       >
         <input
-          name="first_name"
+          name="owner_name"
           className="form-input"
-          placeholder="First Name"
-          value={form.first_name}
-          onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+          placeholder="Full Name"
+          value={form.owner_name}
+          onChange={(e) => setForm({ ...form, owner_name: e.target.value })}
           required
         />
         <input
-          name="last_name"
-          className="form-input"
-          placeholder="Last Name"
-          value={form.last_name}
-          onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-          required
-        />
-        <input
-          name="email"
+          name="owner_email"
+          type="email"
           className="form-input"
           placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          value={form.owner_email}
+          onChange={(e) => setForm({ ...form, owner_email: e.target.value })}
         />
         <input
-          name="phone"
+          name="owner_phone"
           className="form-input"
           placeholder="Phone"
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          value={form.owner_phone}
+          onChange={(e) => setForm({ ...form, owner_phone: e.target.value })}
         />
         <input
-          name="address"
+          name="owner_address"
           className="form-input"
           placeholder="Address"
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-        />
-        <input
-          name="city"
-          className="form-input"
-          placeholder="City"
-          value={form.city}
-          onChange={(e) => setForm({ ...form, city: e.target.value })}
+          value={form.owner_address}
+          onChange={(e) => setForm({ ...form, owner_address: e.target.value })}
         />
       </Modal>
     </div>

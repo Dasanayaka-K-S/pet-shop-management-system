@@ -35,4 +35,9 @@ public class ownerController {
         return ownerService.updateOwner(owner);
     }
 
+    @DeleteMapping("/deleteOwner/{id}")
+    public void deleteOwner(@PathVariable int id) {
+        ownerService.deleteOwner(id);
+    }
+
 }

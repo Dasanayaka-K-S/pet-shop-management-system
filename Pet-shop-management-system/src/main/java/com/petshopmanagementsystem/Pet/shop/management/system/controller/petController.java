@@ -3,6 +3,8 @@ package com.petshopmanagementsystem.Pet.shop.management.system.controller;
 import com.petshopmanagementsystem.Pet.shop.management.system.model.Pet;
 import com.petshopmanagementsystem.Pet.shop.management.system.service.petService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -31,5 +33,19 @@ public class petController {
     @PutMapping("/updatePet")
     public Pet updatePet(@RequestBody Pet pet) {
         return petService.updatePet(pet);
+    }
+
+    @DeleteMapping("/deletePet/{id}")
+    public ResponseEntity<String> deletePet(@PathVariable int id) {
+        try {
+            Pet pet = petService.findPetById(id);
+            if (pet == null) {
+                return new ResponseEntity<>("Pet not found", HttpStatus.NOT_FOUND);
+            }
+            petService.deletePet(id);
+            return new ResponseEntity<>("Pet deleted successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to delete pet", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

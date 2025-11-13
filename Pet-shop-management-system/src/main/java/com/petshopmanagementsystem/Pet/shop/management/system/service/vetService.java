@@ -32,4 +32,8 @@ public class vetService {
     public List<Vet> getAllVets(){
         return vetRepo.findAll();
     }
+
+    public Vet deleteVetById(int id){
+        return vetRepo.findById(id).orElse(null);
+    }
 }
