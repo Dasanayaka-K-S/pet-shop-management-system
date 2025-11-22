@@ -7,10 +7,16 @@ import Owners from "./Pages/Owners";
 import Pets from "./Pages/Pets";
 import Veterinarians from "./Pages/Veterinarians";
 import Appointments from "./Pages/Appointments";
-import TreatmentPrescription from "./Pages/TreatmentPrescription"; // ✅ new page import
+import TreatmentPrescription from "./Pages/TreatmentPrescription";
+import PetCareLogin from "./components/PetCareLogin"; // ✅ Import Login component
+
 import "./App.css";
 
 const App = () => {
+  // ✅ Authentication state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [activePage, setActivePage] = useState("Dashboard");
 
   // --- States for all tables ---
@@ -18,10 +24,22 @@ const App = () => {
   const [pets, setPets] = useState([]);
   const [vets, setVets] = useState([]);
   const [appointments, setAppointments] = useState([]);
-  const [treatments, setTreatments] = useState([]); // ✅ treatments state
+  const [treatments, setTreatments] = useState([]);
+
+  // ✅ Check if user is already logged in on page load
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('isAuthenticated') === 'true';
+    const username = localStorage.getItem('username');
+    if (loggedIn && username) {
+      setIsLoggedIn(true);
+      setCurrentUser(username);
+    }
+  }, []);
 
   // --- Demo Data ---
   useEffect(() => {
+    if (!isLoggedIn) return; // Only load data after login
+
     setOwners([
       {
         owner_id: 1,
@@ -91,7 +109,6 @@ const App = () => {
       },
     ]);
 
-    // ✅ Updated appointment data (new schema)
     setAppointments([
       {
         appointment_id: 1,
@@ -115,7 +132,6 @@ const App = () => {
       },
     ]);
 
-    // ✅ Treatment / Prescription demo data
     setTreatments([
       {
         treatment_id: 1,
@@ -134,9 +150,11 @@ const App = () => {
         date: "2025-11-11",
       },
     ]);
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
+    if (!isLoggedIn) return; // Only fetch after login
+
     const fetchBackendData = async () => {
       try {
         const [ownersRes, petsRes, vetsRes] = await Promise.all([
@@ -155,8 +173,6 @@ const App = () => {
           vetsRes.json(),
         ]);
 
-        // Optionally map backend fields -> UI fields if names differ
-        // Example mapping (adjust according to your backend model):
         const mappedOwners = ownersData.map(o => ({
           ownerId: o.ownerId ?? o.owner_id ?? o.id,
           name: o.name ?? `${o.first_name ?? ''} ${o.last_name ?? ''}`.trim(),
@@ -166,7 +182,7 @@ const App = () => {
         const mappedPets = petsData.map(p => ({
           petId: p.petId ?? p.id,
           ownerId: p.ownerId ?? p.owner_id,
-          ownerName: p.ownerName ?? p.ownerName /* or compute from owners */,
+          ownerName: p.ownerName ?? p.ownerName,
           ...p,
         }));
 
@@ -175,15 +191,31 @@ const App = () => {
         setVets(vetsData);
       } catch (err) {
         console.error('Failed to load backend data', err);
-        // optional: fall back to demo data here
       }
     };
 
     fetchBackendData();
-  }, []);
+  }, [isLoggedIn]);
 
   const getPetName = (id) => pets.find((p) => p.petId === id)?.name || "Unknown";
   const getVetName = (id) => vets.find((v) => v.vet_id === id)?.name || "Unknown";
+
+  // ✅ Handle successful login
+  const handleLoginSuccess = (username) => {
+    setIsLoggedIn(true);
+    setCurrentUser(username);
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('username', username);
+  };
+
+  // ✅ Handle logout
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+    setActivePage("Dashboard"); // Reset to dashboard
+  };
 
   const pageButtons = [
     { id: "Dashboard", label: "Dashboard" },
@@ -191,12 +223,18 @@ const App = () => {
     { id: "Pets", label: "Pets" },
     { id: "Veterinarians", label: "Veterinarians" },
     { id: "Appointments", label: "Appointments" },
-    { id: "TreatmentPrescription", label: "Treatment / Prescription" }, // ✅ new nav tab
+    { id: "TreatmentPrescription", label: "Treatment / Prescription" },
   ];
 
+  // ✅ If not logged in, show login page
+  if (!isLoggedIn) {
+    return <PetCareLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // ✅ If logged in, show the main app
   return (
     <>
-      <Header />
+      <Header currentUser={currentUser} onLogout={handleLogout} />
 
       {/* Sticky navigation bar */}
       <div className="navigation">
