@@ -23,8 +23,25 @@ public class Appointment {
     @JsonProperty("appointment_date")
     private LocalDateTime appointment_date;
 
+    @JsonProperty("appointment_end_time")  // ✅ NEW: Track end time
+    private LocalDateTime appointment_end_time;
+
+    @Column(name = "duration_minutes")  // ✅ NEW: Track duration
+    private Integer duration_minutes = 30; // Default 30 minutes
+
     private String reason;
-    private String status; // Scheduled, Completed, Cancelled
+
+    @Column(length = 20)
+    private String status; // Scheduled, In Progress, Completed, Cancelled
+
+    @Column(length = 500)
+    private String notes; // ✅ NEW: Additional notes
+
+    @Column(name = "created_at")
+    private LocalDateTime created_at;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updated_at;
 
     // Transient fields for frontend display
     @Transient
@@ -44,6 +61,9 @@ public class Appointment {
     private Integer vetIdForJson;
 
     public Appointment() {
+        this.created_at = LocalDateTime.now();
+        this.updated_at = LocalDateTime.now();
+        this.status = "Scheduled";
     }
 
     public Appointment(int appointment_id, Pet pet, Vet vet, LocalDateTime appointment_date,
@@ -54,6 +74,15 @@ public class Appointment {
         this.appointment_date = appointment_date;
         this.reason = reason;
         this.status = status;
+        this.created_at = LocalDateTime.now();
+        this.updated_at = LocalDateTime.now();
+    }
+
+    // ✅ Calculate end time based on duration
+    public void calculateEndTime() {
+        if (this.appointment_date != null && this.duration_minutes != null) {
+            this.appointment_end_time = this.appointment_date.plusMinutes(this.duration_minutes);
+        }
     }
 
     // Getters and Setters
@@ -95,6 +124,24 @@ public class Appointment {
 
     public void setAppointment_date(LocalDateTime appointment_date) {
         this.appointment_date = appointment_date;
+        calculateEndTime();
+    }
+
+    public LocalDateTime getAppointment_end_time() {
+        return appointment_end_time;
+    }
+
+    public void setAppointment_end_time(LocalDateTime appointment_end_time) {
+        this.appointment_end_time = appointment_end_time;
+    }
+
+    public Integer getDuration_minutes() {
+        return duration_minutes;
+    }
+
+    public void setDuration_minutes(Integer duration_minutes) {
+        this.duration_minutes = duration_minutes;
+        calculateEndTime();
     }
 
     public String getReason() {
@@ -111,6 +158,31 @@ public class Appointment {
 
     public void setStatus(String status) {
         this.status = status;
+        this.updated_at = LocalDateTime.now();
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(LocalDateTime created_at) {
+        this.created_at = created_at;
+    }
+
+    public LocalDateTime getUpdated_at() {
+        return updated_at;
+    }
+
+    public void setUpdated_at(LocalDateTime updated_at) {
+        this.updated_at = updated_at;
     }
 
     public String getPetName() {
@@ -152,8 +224,8 @@ public class Appointment {
                 ", pet=" + (pet != null ? pet.getPet_id() : "null") +
                 ", vet=" + (vet != null ? vet.getVet_id() : "null") +
                 ", appointment_date=" + appointment_date +
-                ", reason='" + reason + '\'' +
                 ", status='" + status + '\'' +
+                ", reason='" + reason + '\'' +
                 '}';
     }
 }

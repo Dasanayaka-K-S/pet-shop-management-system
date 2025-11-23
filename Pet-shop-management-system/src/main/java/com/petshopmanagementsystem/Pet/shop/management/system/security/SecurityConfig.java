@@ -28,7 +28,7 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -38,20 +38,28 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login").permitAll()  // Allow login without authentication
-                        .requestMatchers("/adduser", "/users", "/user/**").authenticated()  // Require authentication
-                        .anyRequest().authenticated()
+                        // Public endpoints - no authentication required
+                        .requestMatchers("/login", "/logout", "/signup").permitAll()
+
+                        // ✅ NEW: Allow public access to Owner, Pet, Vet, Appointment APIs
+                        .requestMatchers("/api/app/**").permitAll()
+
+                        // Protected User Management endpoints - authentication required
+                        .requestMatchers("/adduser", "/users", "/user/**").authenticated()
+
+                        // ✅ CHANGED: Allow all other requests (instead of requiring auth)
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .httpBasic(basic -> {});  // Enable Basic Authentication
+                .httpBasic(basic -> {});
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(bCryptPasswordEncoder());
@@ -64,15 +72,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
         configuration.setAllowedOriginPatterns(List.of("*"));
-
-        // Or if you want to specify exact origins (more secure):
-        // configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
-
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

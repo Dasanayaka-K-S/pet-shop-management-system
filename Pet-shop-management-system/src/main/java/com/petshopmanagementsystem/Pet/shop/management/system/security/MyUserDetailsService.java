@@ -1,6 +1,5 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.security;
 
-
 import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import com.petshopmanagementsystem.Pet.shop.management.system.repo.userRepo;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,11 +18,17 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("Loading user: " + username);
+
         User user = userRepository.findByUsername(username);
 
-        if (user == null){
-            throw new UsernameNotFoundException("This user does not exist in the database");
+        if (user == null) {
+            System.out.println("User not found: " + username);
+            throw new UsernameNotFoundException("User not found: " + username);
         }
+
+        System.out.println("User found: " + username);
+        System.out.println("Password hash exists: " + (user.getPasswordHash() != null));
 
         return new UserPrincipal(user);
     }

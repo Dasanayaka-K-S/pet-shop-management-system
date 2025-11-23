@@ -1,7 +1,5 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.controller;
 
-
-
 import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import com.petshopmanagementsystem.Pet.shop.management.system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+})
 public class UserController {
 
     @Autowired
@@ -35,6 +39,9 @@ public class UserController {
             String username = loginRequest.get("username");
             String password = loginRequest.get("password");
 
+            System.out.println("=== Login Attempt ===");
+            System.out.println("Username: " + username);
+
             if (username == null || username.trim().isEmpty()) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("success", false);
@@ -49,6 +56,18 @@ public class UserController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
+            // Check if user exists first
+            User user = userService.findByUsername(username);
+            if (user == null) {
+                System.out.println("User not found: " + username);
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "User not found");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            }
+
+            System.out.println("User found. Attempting authentication...");
+
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
@@ -56,8 +75,7 @@ public class UserController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Get user details
-            User user = userService.findByUsername(username);
+            System.out.println("Authentication successful!");
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -70,11 +88,14 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
+            System.out.println("Bad credentials: " + e.getMessage());
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Invalid username or password");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         } catch (Exception e) {
+            System.out.println("Login error: " + e.getMessage());
+            e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "An error occurred during login: " + e.getMessage());
@@ -213,6 +234,31 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    // Public sign-up endpoint (no authentication required)
+    @PostMapping("/signup")
+    public ResponseEntity<?> signUpUser(@RequestBody User user) {
+        try {
+            User newUser = userService.registerUser(user);
 
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Account created successfully");
+            response.put("userId", newUser.getId());
+            response.put("username", newUser.getUsername());
 
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error creating account: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 }

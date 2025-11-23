@@ -1,7 +1,5 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.security;
 
-
-
 import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,6 +23,11 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getPassword() {
+        // FIXED: Return the BCrypt hash for authentication
+        // Try passwordHash first, then fall back to password field
+        if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
+            return user.getPasswordHash();
+        }
         return user.getPassword();
     }
 
@@ -35,21 +38,21 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
 }

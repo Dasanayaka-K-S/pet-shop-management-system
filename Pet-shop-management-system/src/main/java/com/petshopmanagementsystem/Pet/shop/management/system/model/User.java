@@ -1,9 +1,6 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,28 +9,34 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
+@Table(name = "user")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String firstname;
     private String lastname;
+
+    @Column(unique = true)
     private String username;
+
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "password_hash")
     private String passwordHash;
 
-    public User(int id, String firstname, String lastname, String username, String password) {
-        this.id = id;
+    // Constructor without id
+    public User(String firstname, String lastname, String username, String password) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.username = username;
         this.password = password;
-
     }
 
-
-
+    // Getters and Setters
     public int getId() {
         return id;
     }
@@ -82,4 +85,3 @@ public class User {
         this.passwordHash = passwordHash;
     }
 }
-

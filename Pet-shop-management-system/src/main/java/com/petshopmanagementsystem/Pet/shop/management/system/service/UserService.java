@@ -1,6 +1,5 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.service;
 
-
 import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import com.petshopmanagementsystem.Pet.shop.management.system.repo.userRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +42,8 @@ public class UserService {
 
         // Encode password
         String encodedPassword = passwordEncoder.encode(user.getPassword());
+
+        // Store encoded password in BOTH fields
         user.setPassword(encodedPassword);
         user.setPasswordHash(encodedPassword);
 
@@ -108,6 +109,4 @@ public class UserService {
 
         return userRepository.save(existingUser);
     }
-
-
 }
