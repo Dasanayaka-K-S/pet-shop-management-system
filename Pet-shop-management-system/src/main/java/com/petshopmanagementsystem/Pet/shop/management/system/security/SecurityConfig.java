@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.petshopmanagementsystem.Pet.shop.management.system.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @EnableWebSecurity
 @Configuration
@@ -37,13 +38,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/register", "/api/v1/adduser").permitAll()
+                        .requestMatchers("/login").permitAll()  // Allow login without authentication
+                        .requestMatchers("/adduser", "/users", "/user/**").authenticated()  // Require authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .httpBasic(basic -> {});
+                .httpBasic(basic -> {});  // Enable Basic Authentication
 
         return http.build();
     }
@@ -64,7 +66,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+
+        // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        // Or if you want to specify exact origins (more secure):
+        // configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

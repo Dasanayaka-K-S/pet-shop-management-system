@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.petshopmanagementsystem.Pet.shop.management.system.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

@@ -1,372 +1,351 @@
 import React, { useState, useEffect } from 'react';
 
-export default function PetCareLogin({ onLoginSuccess }) {
+export default function PetCareAdminSystem() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loginForm, setLoginForm] = useState({
+    username: '',
+    password: ''
+  });
+  const [addUserForm, setAddUserForm] = useState({
+    firstname: '',
+    lastname: '',
     username: '',
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showRegister, setShowRegister] = useState(false);
-  const [focusedInput, setFocusedInput] = useState('');
-  const [mounted, setMounted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [users, setUsers] = useState([]);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
+
+  const API_BASE_URL = 'http://localhost:8080';
 
   useEffect(() => {
-    setMounted(true);
+    // Check if user is already logged in
+    const storedUser = sessionStorage.getItem('user');
+    const storedCredentials = sessionStorage.getItem('authCredentials');
+    if (storedUser && storedCredentials) {
+      setCurrentUser(JSON.parse(storedUser));
+      setIsLoggedIn(true);
+      fetchUsers();
+    }
   }, []);
 
-  const handleLogin = () => {
+  const fetchUsers = async () => {
+    try {
+      const credentials = sessionStorage.getItem('authCredentials');
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUsers(data.users);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
+
+  const handleLogin = async () => {
     setError('');
+    setSuccessMessage('');
     
-    if (!formData.username || !formData.password) {
+    if (!loginForm.username || !loginForm.password) {
       setError('Please enter both username and password');
       return;
     }
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      onLoginSuccess(formData.username);
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const userData = {
+          username: data.username,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          userId: data.userId
+        };
+        
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        const credentials = btoa(`${loginForm.username}:${loginForm.password}`);
+        sessionStorage.setItem('authCredentials', credentials);
+        
+        setCurrentUser(userData);
+        setIsLoggedIn(true);
+        setLoginForm({ username: '', password: '' });
+        fetchUsers();
+      } else {
+        setError(data.message || 'Login failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Unable to connect to server. Please check if the backend is running on port 8080.');
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
-  const handleRegister = () => {
+  const handleAddUser = async () => {
     setError('');
+    setSuccessMessage('');
     
-    if (!formData.firstname || !formData.lastname || !formData.username || !formData.password) {
+    if (!addUserForm.firstname || !addUserForm.lastname || !addUserForm.username || !addUserForm.password) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (addUserForm.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      alert('Registration successful! You can now login.');
-      setShowRegister(false);
-      setFormData({ 
-        username: formData.username, 
-        password: formData.password 
+    try {
+      const credentials = sessionStorage.getItem('authCredentials');
+      const response = await fetch(`${API_BASE_URL}/adduser`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(addUserForm)
       });
-      setIsLoading(false);
-    }, 500);
-  };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
-  };
+      const data = await response.json();
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      if (showRegister) {
-        handleRegister();
+      if (response.ok && data.success) {
+        setSuccessMessage(`User "${addUserForm.username}" added successfully!`);
+        setAddUserForm({ firstname: '', lastname: '', username: '', password: '' });
+        setShowAddUserForm(false);
+        fetchUsers();
       } else {
-        handleLogin();
+        setError(data.message || 'Failed to add user. Please try again.');
       }
+    } catch (err) {
+      console.error('Add user error:', err);
+      setError('Unable to connect to server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div style={styles.container}>
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -30px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 0.8; }
-        }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(-20px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -1000px 0; }
-          100% { background-position: 1000px 0; }
-        }
-        .input-container {
-          position: relative;
-          margin-bottom: 24px;
-        }
-        .input-field {
-          width: 100%;
-          padding: 16px 20px;
-          font-size: 15px;
-          border: 2px solid #e8e8e8;
-          border-radius: 14px;
-          outline: none;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-sizing: border-box;
-          background: #fafafa;
-        }
-        .input-field:focus {
-          border-color: #667eea;
-          background: white;
-          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-          transform: translateY(-2px);
-        }
-        .input-label {
-          position: absolute;
-          left: 20px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 15px;
-          color: #999;
-          pointer-events: none;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          background: transparent;
-          padding: 0 4px;
-        }
-        .input-field:focus ~ .input-label,
-        .input-field:not(:placeholder-shown) ~ .input-label {
-          top: 0;
-          font-size: 12px;
-          color: #667eea;
-          font-weight: 600;
-          background: white;
-        }
-        .submit-btn {
-          width: 100%;
-          padding: 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 14px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          margin-top: 16px;
-          position: relative;
-          overflow: hidden;
-          letter-spacing: 0.5px;
-        }
-        .submit-btn:not(:disabled):hover {
-          transform: translateY(-3px);
-          box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }
-        .submit-btn:not(:disabled):active {
-          transform: translateY(-1px);
-        }
-        .submit-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .submit-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-          transition: left 0.5s;
-        }
-        .submit-btn:hover::before {
-          left: 100%;
-        }
-        .error-box {
-          background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-          color: white;
-          padding: 14px 18px;
-          border-radius: 12px;
-          font-size: 14px;
-          margin-bottom: 24px;
-          animation: slideIn 0.3s ease-out;
-          box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-          font-weight: 500;
-        }
-        .link-text {
-          color: #667eea;
-          text-decoration: none;
-          cursor: pointer;
-          font-weight: 700;
-          transition: all 0.2s;
-          position: relative;
-        }
-        .link-text:hover {
-          color: #764ba2;
-        }
-        .link-text::after {
-          content: '';
-          position: absolute;
-          width: 0;
-          height: 2px;
-          bottom: -2px;
-          left: 0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          transition: width 0.3s;
-        }
-        .link-text:hover::after {
-          width: 100%;
-        }
-        .demo-badge {
-          background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
-          border: 1px solid rgba(102, 126, 234, 0.3);
-          padding: 14px 20px;
-          border-radius: 12px;
-          margin-top: 24px;
-          font-size: 13px;
-          color: #667eea;
-          text-align: center;
-          font-weight: 600;
-          backdrop-filter: blur(10px);
-        }
-        .particle {
-          position: absolute;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 50%;
-          pointer-events: none;
-        }
-      `}</style>
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`Are you sure you want to delete user "${username}"?`)) {
+      return;
+    }
 
-      {/* Animated Background Orbs */}
-      <div style={{...styles.orb, ...styles.orb1}}></div>
-      <div style={{...styles.orb, ...styles.orb2}}></div>
-      <div style={{...styles.orb, ...styles.orb3}}></div>
+    try {
+      const credentials = sessionStorage.getItem('authCredentials');
+      const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        }
+      });
 
-      {/* Floating Particles */}
-      {[...Array(15)].map((_, i) => (
-        <div
-          key={i}
-          className="particle"
-          style={{
-            width: `${Math.random() * 4 + 2}px`,
-            height: `${Math.random() * 4 + 2}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `float ${Math.random() * 10 + 15}s infinite ease-in-out`,
-            animationDelay: `${Math.random() * 5}s`
-          }}
-        />
-      ))}
+      const data = await response.json();
 
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.logo}>
-            <div style={styles.logoGlow}></div>
-            <span style={{position: 'relative', zIndex: 1}}>🐾</span>
+      if (response.ok && data.success) {
+        setSuccessMessage(`User "${username}" deleted successfully!`);
+        fetchUsers();
+      } else {
+        setError(data.message || 'Failed to delete user.');
+      }
+    } catch (err) {
+      console.error('Delete user error:', err);
+      setError('Unable to connect to server.');
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('authCredentials');
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setUsers([]);
+    setLoginForm({ username: '', password: '' });
+  };
+
+  const handleKeyPress = (e, action) => {
+    if (e.key === 'Enter') {
+      action();
+    }
+  };
+
+  if (!isLoggedIn) {
+    // Login Screen
+    return (
+      <div style={styles.container}>
+        <style>{styles.css}</style>
+
+        <div style={{...styles.orb, ...styles.orb1}}></div>
+        <div style={{...styles.orb, ...styles.orb2}}></div>
+        <div style={{...styles.orb, ...styles.orb3}}></div>
+
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              width: `${Math.random() * 4 + 2}px`,
+              height: `${Math.random() * 4 + 2}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${Math.random() * 10 + 15}s infinite ease-in-out`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          />
+        ))}
+
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <div style={styles.logo}>
+              <div style={styles.logoGlow}></div>
+              <span style={{position: 'relative', zIndex: 1}}>🐾</span>
+            </div>
+            <h1 style={styles.title}>Pet Care Management</h1>
+            <p style={styles.subtitle}>Admin System - Please login to continue</p>
           </div>
-          <h1 style={styles.title}>Pet Care Management</h1>
-          <p style={styles.subtitle}>
-            {showRegister ? 'Create your account to get started' : 'Welcome back! Please login to continue'}
+
+          <h2 style={styles.formTitle}>Admin Login</h2>
+
+          {error && <div className="error-box">{error}</div>}
+
+          <div className="input-container">
+            <input
+              type="text"
+              name="username"
+              value={loginForm.username}
+              onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+              onKeyPress={(e) => handleKeyPress(e, handleLogin)}
+              className="input-field"
+              placeholder=" "
+            />
+            <label className="input-label">Username</label>
+          </div>
+
+          <div className="input-container">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={loginForm.password}
+              onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+              onKeyPress={(e) => handleKeyPress(e, handleLogin)}
+              className="input-field"
+              placeholder=" "
+              style={{paddingRight: '50px'}}
+            />
+            <label className="input-label">Password</label>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
+              {showPassword ? '👁️' : '👁️‍🗨️'}
+            </button>
+          </div>
+
+          <button
+            onClick={handleLogin}
+            disabled={isLoading}
+            className="submit-btn"
+          >
+            {isLoading ? (
+              <span>
+                <span style={styles.spinner}>⏳</span> Signing in...
+              </span>
+            ) : (
+              'Sign In →'
+            )}
+          </button>
+
+          <div className="demo-badge">
+            🔒 Backend: {API_BASE_URL}
+          </div>
+
+          <p style={styles.footer}>
+            © 2025 Pet Care Management. All rights reserved.
           </p>
         </div>
+      </div>
+    );
+  }
 
-        {!showRegister ? (
-          // Login Form
+  // Admin Dashboard
+  return (
+    <div style={styles.dashboardContainer}>
+      <style>{styles.css}</style>
+
+      <div style={styles.dashboardHeader}>
+        <div style={styles.dashboardHeaderLeft}>
+          <div style={styles.dashboardLogo}>🐾</div>
           <div>
-            <h2 style={styles.formTitle}>Sign In</h2>
-
-            {error && <div className="error-box">{error}</div>}
-
-            <div className="input-container">
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                onFocus={() => setFocusedInput('username')}
-                onBlur={() => setFocusedInput('')}
-                className="input-field"
-                placeholder=" "
-              />
-              <label className="input-label">Username</label>
-            </div>
-
-            <div className="input-container">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput('')}
-                className="input-field"
-                placeholder=" "
-                style={{paddingRight: '50px'}}
-              />
-              <label className="input-label">Password</label>
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
-            </div>
-
-            <div style={styles.rememberRow}>
-              <label style={styles.checkboxLabel}>
-                <input type="checkbox" style={styles.checkbox} />
-                <span>Remember me</span>
-              </label>
-              <a href="#" className="link-text" style={{textDecoration: 'none'}}>Forgot password?</a>
-            </div>
-
-            <button
-              onClick={handleLogin}
-              disabled={isLoading}
-              className="submit-btn"
-            >
-              {isLoading ? (
-                <span>
-                  <span style={styles.spinner}>⏳</span> Signing in...
-                </span>
-              ) : (
-                'Sign In →'
-              )}
-            </button>
-
-            <div style={styles.divider}>
-              <span style={styles.dividerLine}></span>
-              <span style={styles.dividerText}>or</span>
-              <span style={styles.dividerLine}></span>
-            </div>
-
-            <div style={{textAlign: 'center', marginTop: '24px', fontSize: '15px', color: '#666'}}>
-              Don't have an account?{' '}
-              <span onClick={() => setShowRegister(true)} className="link-text">
-                Sign Up
-              </span>
-            </div>
-
-            <div className="demo-badge">
-              💡 Demo Mode: Enter any username and password to access
+            <h1 style={styles.dashboardTitle}>Pet Care Management</h1>
+            <p style={styles.dashboardSubtitle}>Admin Dashboard</p>
+          </div>
+        </div>
+        <div style={styles.dashboardHeaderRight}>
+          <div style={styles.userInfo}>
+            <div style={styles.userAvatar}>{currentUser?.firstname?.[0]}{currentUser?.lastname?.[0]}</div>
+            <div>
+              <div style={styles.userName}>{currentUser?.firstname} {currentUser?.lastname}</div>
+              <div style={styles.userRole}>Administrator</div>
             </div>
           </div>
-        ) : (
-          // Register Form
-          <div>
-            <h2 style={styles.formTitle}>Create Account</h2>
+          <button onClick={handleLogout} style={styles.logoutBtn}>
+            Logout
+          </button>
+        </div>
+      </div>
 
-            {error && <div className="error-box">{error}</div>}
+      <div style={styles.dashboardContent}>
+        <div style={styles.contentHeader}>
+          <h2 style={styles.contentTitle}>User Management</h2>
+          <button
+            onClick={() => setShowAddUserForm(!showAddUserForm)}
+            style={styles.addUserBtn}
+          >
+            {showAddUserForm ? '✕ Cancel' : '+ Add New User'}
+          </button>
+        </div>
 
-            <div style={styles.gridRow}>
+        {error && <div className="error-box" style={{marginBottom: '20px'}}>{error}</div>}
+        {successMessage && <div className="success-box" style={{marginBottom: '20px'}}>{successMessage}</div>}
+
+        {showAddUserForm && (
+          <div style={styles.addUserCard}>
+            <h3 style={styles.cardTitle}>Add New User</h3>
+            
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
               <div className="input-container">
                 <input
                   type="text"
-                  name="firstname"
-                  value={formData.firstname || ''}
-                  onChange={handleChange}
+                  value={addUserForm.firstname}
+                  onChange={(e) => setAddUserForm({...addUserForm, firstname: e.target.value})}
                   className="input-field"
                   placeholder=" "
                 />
@@ -375,9 +354,8 @@ export default function PetCareLogin({ onLoginSuccess }) {
               <div className="input-container">
                 <input
                   type="text"
-                  name="lastname"
-                  value={formData.lastname || ''}
-                  onChange={handleChange}
+                  value={addUserForm.lastname}
+                  onChange={(e) => setAddUserForm({...addUserForm, lastname: e.target.value})}
                   className="input-field"
                   placeholder=" "
                 />
@@ -388,10 +366,8 @@ export default function PetCareLogin({ onLoginSuccess }) {
             <div className="input-container">
               <input
                 type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
+                value={addUserForm.username}
+                onChange={(e) => setAddUserForm({...addUserForm, username: e.target.value})}
                 className="input-field"
                 placeholder=" "
               />
@@ -401,10 +377,9 @@ export default function PetCareLogin({ onLoginSuccess }) {
             <div className="input-container">
               <input
                 type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
+                value={addUserForm.password}
+                onChange={(e) => setAddUserForm({...addUserForm, password: e.target.value})}
+                onKeyPress={(e) => handleKeyPress(e, handleAddUser)}
                 className="input-field"
                 placeholder=" "
                 style={{paddingRight: '50px'}}
@@ -417,49 +392,178 @@ export default function PetCareLogin({ onLoginSuccess }) {
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
-              <p style={styles.hint}>
-                Must be at least 6 characters
-              </p>
+              <p style={styles.hint}>Must be at least 6 characters</p>
             </div>
 
             <button
-              onClick={handleRegister}
+              onClick={handleAddUser}
               disabled={isLoading}
               className="submit-btn"
             >
-              {isLoading ? (
-                <span>
-                  <span style={styles.spinner}>⏳</span> Creating account...
-                </span>
-              ) : (
-                'Create Account →'
-              )}
+              {isLoading ? 'Adding User...' : 'Add User'}
             </button>
-
-            <div style={styles.divider}>
-              <span style={styles.dividerLine}></span>
-              <span style={styles.dividerText}>or</span>
-              <span style={styles.dividerLine}></span>
-            </div>
-
-            <div style={{textAlign: 'center', marginTop: '24px', fontSize: '15px', color: '#666'}}>
-              Already have an account?{' '}
-              <span onClick={() => setShowRegister(false)} className="link-text">
-                Sign In
-              </span>
-            </div>
           </div>
         )}
- 
-        <p style={styles.footer}>
-          © 2025 Pet Care Management. All rights reserved.
-        </p>
+
+        <div style={styles.usersGrid}>
+          {users.map((user) => (
+            <div key={user.id} style={styles.userCard}>
+              <div style={styles.userCardHeader}>
+                <div style={styles.userCardAvatar}>
+                  {user.firstname?.[0]}{user.lastname?.[0]}
+                </div>
+                <div style={styles.userCardInfo}>
+                  <div style={styles.userCardName}>{user.firstname} {user.lastname}</div>
+                  <div style={styles.userCardUsername}>@{user.username}</div>
+                </div>
+              </div>
+              <div style={styles.userCardActions}>
+                <button
+                  onClick={() => handleDeleteUser(user.id, user.username)}
+                  style={styles.deleteBtn}
+                  disabled={user.id === currentUser?.userId}
+                >
+                  {user.id === currentUser?.userId ? '👤 You' : '🗑️ Delete'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {users.length === 0 && (
+          <div style={styles.emptyState}>
+            <div style={styles.emptyIcon}>👥</div>
+            <p style={styles.emptyText}>No users found. Add your first user!</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 const styles = {
+  css: `
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .input-container {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 15px;
+      border: 2px solid #e8e8e8;
+      border-radius: 14px;
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      background: #fafafa;
+    }
+    .input-field:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+    .input-label {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      color: #999;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: transparent;
+      padding: 0 4px;
+    }
+    .input-field:focus ~ .input-label,
+    .input-field:not(:placeholder-shown) ~ .input-label {
+      top: 0;
+      font-size: 12px;
+      color: #667eea;
+      font-weight: 600;
+      background: white;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 16px;
+    }
+    .submit-btn:not(:disabled):hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+    .submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .error-box {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: white;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      animation: slideIn 0.3s ease-out;
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+      font-weight: 500;
+    }
+    .success-box {
+      background: linear-gradient(135deg, #51cf66, #37b24d);
+      color: white;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      animation: slideIn 0.3s ease-out;
+      box-shadow: 0 8px 25px rgba(81, 207, 102, 0.3);
+      font-weight: 500;
+    }
+    .demo-badge {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #667eea;
+      text-align: center;
+      font-weight: 600;
+    }
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+  `,
   container: {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
@@ -467,7 +571,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '20px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     position: 'relative',
     overflow: 'hidden'
   },
@@ -509,7 +613,7 @@ const styles = {
     background: 'rgba(255, 255, 255, 0.95)',
     backdropFilter: 'blur(20px)',
     borderRadius: '28px',
-    boxShadow: '0 30px 90px rgba(0,0,0,0.4), 0 0 1px rgba(255,255,255,0.3)',
+    boxShadow: '0 30px 90px rgba(0,0,0,0.4)',
     padding: '48px',
     width: '100%',
     maxWidth: '500px',
@@ -569,28 +673,6 @@ const styles = {
     color: '#1a1a2e',
     letterSpacing: '-0.3px'
   },
-  rememberRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: '8px',
-    marginBottom: '8px',
-    fontSize: '14px'
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    cursor: 'pointer',
-    color: '#666',
-    fontWeight: '500'
-  },
-  checkbox: {
-    marginRight: '8px',
-    width: '18px',
-    height: '18px',
-    cursor: 'pointer',
-    accentColor: '#667eea'
-  },
   eyeButton: {
     position: 'absolute',
     right: '18px',
@@ -602,32 +684,7 @@ const styles = {
     fontSize: '20px',
     color: '#999',
     padding: '8px',
-    transition: 'transform 0.2s',
     zIndex: 2
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: '28px',
-    marginBottom: '8px'
-  },
-  dividerLine: {
-    flex: 1,
-    height: '1px',
-    background: 'linear-gradient(90deg, transparent, #e0e0e0, transparent)'
-  },
-  dividerText: {
-    padding: '0 16px',
-    color: '#999',
-    fontSize: '13px',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: '1px'
-  },
-  gridRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px'
   },
   hint: {
     fontSize: '12px',
@@ -645,5 +702,208 @@ const styles = {
   spinner: {
     display: 'inline-block',
     animation: 'spin 1s linear infinite'
+  },
+  dashboardContainer: {
+    minHeight: '100vh',
+    background: '#f5f7fa',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  },
+  dashboardHeader: {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    padding: '24px 48px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)'
+  },
+  dashboardHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px'
+  },
+  dashboardLogo: {
+    width: '60px',
+    height: '60px',
+    background: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '32px',
+    backdropFilter: 'blur(10px)'
+  },
+  dashboardTitle: {
+    fontSize: '28px',
+    fontWeight: '800',
+    color: 'white',
+    margin: '0',
+    letterSpacing: '-0.5px'
+  },
+  dashboardSubtitle: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    margin: '4px 0 0 0'
+  },
+  dashboardHeaderRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px'
+  },
+  userInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  userAvatar: {
+    width: '48px',
+    height: '48px',
+    background: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: '700',
+    fontSize: '16px',
+    backdropFilter: 'blur(10px)'
+  },
+  userName: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: 'white'
+  },
+  userRole: {
+    fontSize: '12px',
+    color: 'rgba(255, 255, 255, 0.8)'
+  },
+  logoutBtn: {
+    padding: '10px 24px',
+    background: 'rgba(255, 255, 255, 0.2)',
+    color: 'white',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '10px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'all 0.3s',
+    backdropFilter: 'blur(10px)'
+  },
+  dashboardContent: {
+    padding: '48px',
+    maxWidth: '1400px',
+    margin: '0 auto'
+  },
+  contentHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '32px'
+  },
+  contentTitle: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#1a1a2e',
+    margin: '0'
+  },
+  addUserBtn: {
+    padding: '12px 28px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontSize: '15px',
+    transition: 'all 0.3s',
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+  },
+  addUserCard: {
+    background: 'white',
+    padding: '32px',
+    borderRadius: '20px',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
+    marginBottom: '32px'
+  },
+  cardTitle: {
+    fontSize: '20px',
+    fontWeight: '700',
+    color: '#1a1a2e',
+    marginBottom: '24px'
+  },
+  usersGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '24px'
+  },
+  userCard: {
+    background: 'white',
+    padding: '24px',
+    borderRadius: '16px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+    transition: 'all 0.3s'
+  },
+  userCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    marginBottom: '16px'
+  },
+  userCardAvatar: {
+    width: '56px',
+    height: '56px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: '700',
+    fontSize: '18px'
+  },
+  userCardInfo: {
+    flex: 1
+  },
+  userCardName: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#1a1a2e',
+    marginBottom: '4px'
+  },
+  userCardUsername: {
+    fontSize: '14px',
+    color: '#999',
+    fontWeight: '500'
+  },
+  userCardActions: {
+    display: 'flex',
+    justifyContent: 'flex-end'
+  },
+  deleteBtn: {
+    padding: '8px 20px',
+    background: '#ff6b6b',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontSize: '13px',
+    transition: 'all 0.3s'
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '80px 20px',
+    background: 'white',
+    borderRadius: '20px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)'
+  },
+  emptyIcon: {
+    fontSize: '64px',
+    marginBottom: '16px',
+    opacity: 0.5
+  },
+  emptyText: {
+    fontSize: '16px',
+    color: '#999',
+    fontWeight: '500'
   }
 };

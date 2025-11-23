@@ -1,14 +1,14 @@
-package com.example.demo.security;
+package com.petshopmanagementsystem.Pet.shop.management.system.security;
 
 
-import com.example.demo.model.User;
+
+import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class UserPrincipal implements UserDetails {
 

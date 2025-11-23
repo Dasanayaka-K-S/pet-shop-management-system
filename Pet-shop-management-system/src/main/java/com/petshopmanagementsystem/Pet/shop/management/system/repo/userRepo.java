@@ -1,6 +1,7 @@
-package com.example.demo.repo;
+package com.petshopmanagementsystem.Pet.shop.management.system.repo;
 
-import com.example.demo.model.User;
+
+import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

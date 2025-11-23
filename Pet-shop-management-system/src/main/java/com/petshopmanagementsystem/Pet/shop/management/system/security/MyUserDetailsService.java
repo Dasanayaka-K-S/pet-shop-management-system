@@ -1,8 +1,8 @@
-package com.example.demo.security;
+package com.petshopmanagementsystem.Pet.shop.management.system.security;
 
-import com.example.demo.model.User;
-import com.example.demo.repo.userRepo;
 
+import com.petshopmanagementsystem.Pet.shop.management.system.model.User;
+import com.petshopmanagementsystem.Pet.shop.management.system.repo.userRepo;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
