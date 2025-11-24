@@ -1,41 +1,62 @@
 import React from "react";
 
-const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName }) => {
-  const scheduledCount = appointments?.filter((a) => a.status === "Scheduled").length || 0;
-  const completedCount = appointments?.filter((a) => a.status === "Completed").length || 0;
-  const cancelledCount = appointments?.filter((a) => a.status === "Cancelled").length || 0;
+const Dashboard = ({ owners = [], pets = [], vets = [], appointments = [], getPetName, getVetName }) => {
+  // ✅ Ensure appointments is always an array
+  const safeAppointments = Array.isArray(appointments) ? appointments : [];
+  
+  const scheduledCount = safeAppointments.filter((a) => a.status === "Scheduled").length;
+  const completedCount = safeAppointments.filter((a) => a.status === "Completed").length;
+  const cancelledCount = safeAppointments.filter((a) => a.status === "Cancelled").length;
 
   const stats = [
     { 
       label: "Total Owners", 
-      value: owners?.length || 0, 
+      value: Array.isArray(owners) ? owners.length : 0, 
       icon: "👥",
       gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%)"
     },
     { 
       label: "Total Pets", 
-      value: pets?.length || 0, 
+      value: Array.isArray(pets) ? pets.length : 0, 
       icon: "🐾",
       gradient: "linear-gradient(135deg, #0f3460 0%, #16213e 100%)"
     },
     { 
       label: "Veterinarians", 
-      value: vets?.length || 0, 
+      value: Array.isArray(vets) ? vets.length : 0, 
       icon: "⚕️",
       gradient: "linear-gradient(135deg, #1a0a2e 0%, #0a0a0a 100%)"
     },
     { 
       label: "Appointments", 
-      value: appointments?.length || 0, 
+      value: safeAppointments.length, 
       icon: "📅",
       gradient: "linear-gradient(135deg, #16213e 0%, #1a0a2e 100%)"
     },
   ];
 
-  const upcomingAppointments = [...(appointments || [])]
-    .filter(a => a.status === "Scheduled")
+  // ✅ Safe filtering with proper array handling
+  const upcomingAppointments = safeAppointments
+    .filter(a => a.status === "Scheduled" && a.appointment_date)
     .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date))
     .slice(0, 5);
+
+  // ✅ Safe helper functions
+  const safePetName = (petId) => {
+    if (typeof getPetName === 'function') {
+      return getPetName(petId);
+    }
+    const pet = Array.isArray(pets) ? pets.find(p => p.pet_id === petId) : null;
+    return pet ? pet.pet_name : 'Unknown Pet';
+  };
+
+  const safeVetName = (vetId) => {
+    if (typeof getVetName === 'function') {
+      return getVetName(vetId);
+    }
+    const vet = Array.isArray(vets) ? vets.find(v => v.vet_id === vetId) : null;
+    return vet ? vet.vet_name : 'Unknown Vet';
+  };
 
   return (
     <div style={styles.container}>
@@ -103,8 +124,8 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
                       </div>
                     </div>
                     <div style={styles.appointmentInfo}>
-                      <h4 style={styles.petName}>{getPetName?.(apt.pet_id) || 'Unknown Pet'}</h4>
-                      <p style={styles.reason}>{apt.reason}</p>
+                      <h4 style={styles.petName}>{safePetName(apt.pet_id)}</h4>
+                      <p style={styles.reason}>{apt.reason || 'No reason specified'}</p>
                       <div style={styles.appointmentMeta}>
                         <span style={styles.metaItem}>
                           🕐 {new Date(apt.appointment_date).toLocaleTimeString('en-US', { 
@@ -113,7 +134,7 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
                           })}
                         </span>
                         <span style={styles.metaItem}>
-                          ⚕️ {getVetName?.(apt.vet_id) || 'Unknown Vet'}
+                          ⚕️ {safeVetName(apt.vet_id)}
                         </span>
                       </div>
                     </div>

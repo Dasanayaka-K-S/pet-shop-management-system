@@ -21,7 +21,7 @@ const App = () => {
   // ✅ IMPORTANT: Always start with Dashboard
   const [activePage, setActivePage] = useState("Dashboard");
 
-  // --- States for all tables ---
+  // --- States for all tables - INITIALIZE AS EMPTY ARRAYS ---
   const [owners, setOwners] = useState([]);
   const [pets, setPets] = useState([]);
   const [vets, setVets] = useState([]);
@@ -30,6 +30,7 @@ const App = () => {
 
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // ✅ Check if user is already logged in on page load
   useEffect(() => {
@@ -48,6 +49,7 @@ const App = () => {
 
     const fetchBackendData = async () => {
       setIsLoading(true);
+      setError(null);
       
       try {
         // Fetch Owners
@@ -56,12 +58,23 @@ const App = () => {
           if (ownersRes.ok) {
             const ownersData = await ownersRes.json();
             console.log('Owners data:', ownersData);
-            setOwners(ownersData);
+            
+            // ✅ Handle both array and {success, data} format
+            if (Array.isArray(ownersData)) {
+              setOwners(ownersData);
+            } else if (ownersData.success && Array.isArray(ownersData.owners)) {
+              setOwners(ownersData.owners);
+            } else {
+              console.error('Owners data is not in expected format:', ownersData);
+              setOwners([]);
+            }
           } else {
             console.log('Failed to fetch owners:', ownersRes.status);
+            setOwners([]);
           }
         } catch (err) {
           console.log('Owners API error:', err.message);
+          setOwners([]);
         }
 
         // Fetch Pets
@@ -70,12 +83,23 @@ const App = () => {
           if (petsRes.ok) {
             const petsData = await petsRes.json();
             console.log('Pets data:', petsData);
-            setPets(petsData);
+            
+            // ✅ Handle both array and {success, data} format
+            if (Array.isArray(petsData)) {
+              setPets(petsData);
+            } else if (petsData.success && Array.isArray(petsData.pets)) {
+              setPets(petsData.pets);
+            } else {
+              console.error('Pets data is not in expected format:', petsData);
+              setPets([]);
+            }
           } else {
             console.log('Failed to fetch pets:', petsRes.status);
+            setPets([]);
           }
         } catch (err) {
           console.log('Pets API error:', err.message);
+          setPets([]);
         }
 
         // Fetch Vets
@@ -84,12 +108,23 @@ const App = () => {
           if (vetsRes.ok) {
             const vetsData = await vetsRes.json();
             console.log('Vets data:', vetsData);
-            setVets(vetsData);
+            
+            // ✅ Handle both array and {success, data} format
+            if (Array.isArray(vetsData)) {
+              setVets(vetsData);
+            } else if (vetsData.success && Array.isArray(vetsData.vets)) {
+              setVets(vetsData.vets);
+            } else {
+              console.error('Vets data is not in expected format:', vetsData);
+              setVets([]);
+            }
           } else {
             console.log('Failed to fetch vets:', vetsRes.status);
+            setVets([]);
           }
         } catch (err) {
           console.log('Vets API error:', err.message);
+          setVets([]);
         }
 
         // Fetch Appointments
@@ -98,12 +133,23 @@ const App = () => {
           if (appointmentsRes.ok) {
             const appointmentsData = await appointmentsRes.json();
             console.log('Appointments data:', appointmentsData);
-            setAppointments(appointmentsData);
+            
+            // ✅ Handle both array and {success, appointments} format
+            if (Array.isArray(appointmentsData)) {
+              setAppointments(appointmentsData);
+            } else if (appointmentsData.success && Array.isArray(appointmentsData.appointments)) {
+              setAppointments(appointmentsData.appointments);
+            } else {
+              console.error('Appointments data is not in expected format:', appointmentsData);
+              setAppointments([]);
+            }
           } else {
             console.log('Failed to fetch appointments:', appointmentsRes.status);
+            setAppointments([]);
           }
         } catch (err) {
           console.log('Appointments API error:', err.message);
+          setAppointments([]);
         }
 
         // Fetch Treatments
@@ -112,16 +158,28 @@ const App = () => {
           if (treatmentsRes.ok) {
             const treatmentsData = await treatmentsRes.json();
             console.log('Treatments data:', treatmentsData);
-            setTreatments(treatmentsData);
+            
+            // ✅ Handle both array and {success, data} format
+            if (Array.isArray(treatmentsData)) {
+              setTreatments(treatmentsData);
+            } else if (treatmentsData.success && Array.isArray(treatmentsData.treatments)) {
+              setTreatments(treatmentsData.treatments);
+            } else {
+              console.error('Treatments data is not in expected format:', treatmentsData);
+              setTreatments([]);
+            }
           } else {
             console.log('Failed to fetch treatments:', treatmentsRes.status);
+            setTreatments([]);
           }
         } catch (err) {
           console.log('Treatments API error:', err.message);
+          setTreatments([]);
         }
 
       } catch (err) {
         console.log('General error fetching data:', err.message);
+        setError('Failed to load data. Please try refreshing the page.');
       } finally {
         setIsLoading(false);
       }
@@ -132,11 +190,15 @@ const App = () => {
 
   // Helper functions for Dashboard
   const getPetName = (id) => {
+    if (!Array.isArray(pets)) return 'Unknown';
+    
     const pet = pets.find((p) => p.petId === id || p.pet_id === id || p.id === id);
     return pet ? (pet.name || pet.pet_name || 'Unknown') : 'Unknown';
   };
 
   const getVetName = (id) => {
+    if (!Array.isArray(vets)) return 'Unknown';
+    
     const vet = vets.find((v) => v.vet_id === id || v.vetId === id || v.id === id);
     return vet ? (vet.name || vet.vet_name || 'Unknown') : 'Unknown';
   };
@@ -166,6 +228,7 @@ const App = () => {
     setVets([]);
     setAppointments([]);
     setTreatments([]);
+    setError(null);
   };
 
   // ✅ Navigation tabs with User Management added
@@ -270,6 +333,17 @@ const App = () => {
           box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
 
+        .error-message {
+          background: linear-gradient(135deg, #fee, #fdd);
+          border: 1px solid #fcc;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 32px;
+          color: #c33;
+          font-size: 15px;
+          text-align: center;
+        }
+
         @media (max-width: 768px) {
           .nav-tabs {
             gap: 6px;
@@ -298,6 +372,8 @@ const App = () => {
                 key={btn.id}
                 className={`nav-tab ${activePage === btn.id ? "active" : ""}`}
                 onClick={() => setActivePage(btn.id)}
+                role="tab"
+                aria-selected={activePage === btn.id}
               >
                 {btn.label}
               </button>
@@ -307,6 +383,31 @@ const App = () => {
       </div>
 
       <main className="main-content">
+        {/* Error Message */}
+        {error && (
+          <div className="error-message">
+            <div style={{ fontSize: '24px', marginBottom: '10px' }}>⚠️</div>
+            <div style={{ fontWeight: '600', marginBottom: '8px' }}>Error Loading Data</div>
+            <div>{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: '15px',
+                padding: '10px 20px',
+                background: '#c33',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Refresh Page
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
         {isLoading && (
           <div style={{
             textAlign: 'center',
@@ -335,7 +436,8 @@ const App = () => {
           </div>
         )}
 
-        {!isLoading && (
+        {/* Main Content */}
+        {!isLoading && !error && (
           <>
             {activePage === "Dashboard" && (
               <Dashboard

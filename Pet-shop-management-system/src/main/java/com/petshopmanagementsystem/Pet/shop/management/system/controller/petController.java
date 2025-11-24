@@ -10,13 +10,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/app")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})  // ✅ ADD THIS
 public class petController {
 
     @Autowired
     private petService petService;
 
     @PostMapping("/addPet")
-    public Pet addPet(@RequestBody Pet pet) {  // ✅ Added @RequestBody
+    public Pet addPet(@RequestBody Pet pet) {
         return petService.savePet(pet);
     }
 
@@ -45,7 +46,7 @@ public class petController {
             petService.deletePet(id);
             return new ResponseEntity<>("Pet deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Failed to delete pet", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to delete pet: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -23,19 +24,19 @@ public class Appointment {
     @JsonProperty("appointment_date")
     private LocalDateTime appointment_date;
 
-    @JsonProperty("appointment_end_time")  // ✅ NEW: Track end time
+    @JsonProperty("appointment_end_time")
     private LocalDateTime appointment_end_time;
 
-    @Column(name = "duration_minutes")  // ✅ NEW: Track duration
-    private Integer duration_minutes = 30; // Default 30 minutes
+    @Column(name = "duration_minutes")
+    private Integer duration_minutes = 30;
 
     private String reason;
 
     @Column(length = 20)
-    private String status; // Scheduled, In Progress, Completed, Cancelled
+    private String status;
 
     @Column(length = 500)
-    private String notes; // ✅ NEW: Additional notes
+    private String notes;
 
     @Column(name = "created_at")
     private LocalDateTime created_at;
@@ -52,12 +53,16 @@ public class Appointment {
     @JsonProperty("vetName")
     private String vetName;
 
+    // ✅ FIXED: Accept both "pet_id" and "petIdForJson"
     @Transient
     @JsonProperty("pet_id")
+    @JsonAlias({"petIdForJson", "petId"})
     private Integer petIdForJson;
 
+    // ✅ FIXED: Accept both "vet_id" and "vetIdForJson"
     @Transient
     @JsonProperty("vet_id")
+    @JsonAlias({"vetIdForJson", "vetId"})
     private Integer vetIdForJson;
 
     public Appointment() {

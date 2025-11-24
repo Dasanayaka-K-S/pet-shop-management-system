@@ -84,7 +84,6 @@ const Appointments = () => {
     setEditing(null);
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    // ✅ Default to 9:00 AM
     const timeStr = "09:00";
     
     setForm({
@@ -148,21 +147,42 @@ const Appointments = () => {
     }
   };
 
+  // ✅ FIXED: Status change function
   const handleStatusChange = async (appointment, newStatus) => {
     try {
-      const datetime = appointment.appointment_date ? new Date(appointment.appointment_date) : new Date();
-      const datetimeStr = datetime.toISOString().slice(0, 16);
+      // ✅ Properly preserve the original datetime without timezone conversion
+      let datetimeStr;
+      
+      if (appointment.appointment_date) {
+        const datetime = new Date(appointment.appointment_date);
+        const year = datetime.getFullYear();
+        const month = String(datetime.getMonth() + 1).padStart(2, '0');
+        const day = String(datetime.getDate()).padStart(2, '0');
+        const hours = String(datetime.getHours()).padStart(2, '0');
+        const minutes = String(datetime.getMinutes()).padStart(2, '0');
+        const seconds = String(datetime.getSeconds()).padStart(2, '0');
+        
+        datetimeStr = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      } else {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        datetimeStr = `${year}-${month}-${day}T09:00:00`;
+      }
       
       const updatedAppointment = {
         appointment_id: appointment.appointment_id,
-        petIdForJson: appointment.pet_id || appointment.petIdForJson,
-        vetIdForJson: appointment.vet_id || appointment.vetIdForJson,
+        pet_id: appointment.pet_id || appointment.petIdForJson,
+        vet_id: appointment.vet_id || appointment.vetIdForJson,
         appointment_date: datetimeStr,
         duration_minutes: appointment.duration_minutes || 30,
         reason: appointment.reason,
         status: newStatus,
         notes: appointment.notes || "",
       };
+
+      console.log('Sending status update:', updatedAppointment);
 
       const response = await fetch(`${BASE_URL}/updateAppointment`, {
         method: 'PUT',
@@ -173,7 +193,7 @@ const Appointments = () => {
       const data = await response.json();
       
       if (data.success) {
-        showNotification(`Appointment marked as ${newStatus}`, "success");
+        showNotification(`✅ Appointment marked as ${newStatus}`, "success");
         fetchAppointments();
       } else {
         showNotification(data.message || "Failed to update status", "error");
@@ -191,14 +211,13 @@ const Appointments = () => {
     const [hours, minutes] = time.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes;
     
-    const businessStart = 9 * 60; // 9:00 AM
-    const businessEnd = 17 * 60; // 5:00 PM
+    const businessStart = 9 * 60;
+    const businessEnd = 17 * 60;
     
     return totalMinutes >= businessStart && totalMinutes < businessEnd;
   };
 
   const handleSubmit = async () => {
-    // ✅ Validation
     if (!form.pet_id) {
       showNotification("Please select a pet", "error");
       return;
@@ -219,13 +238,11 @@ const Appointments = () => {
       return;
     }
 
-    // ✅ Validate business hours
     if (!validateBusinessHours(form.appointment_time)) {
       showNotification("⏰ Appointments can only be booked between 9:00 AM and 5:00 PM", "error");
       return;
     }
 
-    // ✅ Validate date is not in the past
     const selectedDateTime = new Date(`${form.appointment_date}T${form.appointment_time}`);
     const now = new Date();
     
@@ -237,11 +254,11 @@ const Appointments = () => {
     try {
       setLoading(true);
       
-      const datetimeStr = `${form.appointment_date}T${form.appointment_time}`;
+      const datetimeStr = `${form.appointment_date}T${form.appointment_time}:00`;
       
       const appointmentData = {
-        petIdForJson: Number(form.pet_id),
-        vetIdForJson: Number(form.vet_id),
+        pet_id: Number(form.pet_id),
+        vet_id: Number(form.vet_id),
         appointment_date: datetimeStr,
         duration_minutes: Number(form.duration_minutes) || 30,
         reason: form.reason,
@@ -275,7 +292,6 @@ const Appointments = () => {
         setModalOpen(false);
         fetchAppointments();
       } else {
-        // ✅ Show detailed error message from backend
         showNotification(data.message || "Failed to save appointment", "error");
       }
     } catch (error) {
@@ -413,7 +429,6 @@ const Appointments = () => {
         }
       `}</style>
 
-      {/* ✅ Notification Toast */}
       {notification.show && (
         <div className={`notification-toast ${notification.type}`}>
           <span className="notification-icon">

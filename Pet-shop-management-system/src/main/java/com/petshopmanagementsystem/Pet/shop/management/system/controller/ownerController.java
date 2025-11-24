@@ -21,7 +21,7 @@ public class ownerController {
     }
 
     @GetMapping("/getOwner/{id}")
-    public Owner getOwner(@PathVariable int id) {
+    public Owner getOwner(@PathVariable Long id) {
         return ownerService.findOwnerById(id);
     }
 
@@ -36,7 +36,7 @@ public class ownerController {
     }
 
     @DeleteMapping("/deleteOwner/{id}")
-    public void deleteOwner(@PathVariable int id) {
+    public void deleteOwner(@PathVariable Long id) {
         ownerService.deleteOwner(id);
     }
 

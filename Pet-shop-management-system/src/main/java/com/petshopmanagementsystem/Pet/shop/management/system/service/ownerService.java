@@ -18,7 +18,7 @@ public class ownerService {
         return ownerRepo.save(owner);
     }
 
-    public  Owner findOwnerById(int id) {
+    public  Owner findOwnerById(Long id) {
         return ownerRepo.findById(id).orElse(null);
     }
 
@@ -30,7 +30,7 @@ public class ownerService {
         return ownerRepo.save(owner);
     }
 
-    public Owner deleteOwner(int id) {
+    public Owner deleteOwner(Long id) {
         Owner owner = ownerRepo.findById(id).orElse(null);
         ownerRepo.delete(owner);
         return owner;

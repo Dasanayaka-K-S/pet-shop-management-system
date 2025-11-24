@@ -1,7 +1,6 @@
 package com.petshopmanagementsystem.Pet.shop.management.system.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.Date;
 
@@ -24,10 +23,25 @@ public class Pet {
     @JsonProperty("registered_date")
     private Date registerd_date;
 
-    @ManyToOne
+    // ✅ FIXED: Changed from @JsonBackReference to allow owner in response
+    @ManyToOne(fetch = FetchType.EAGER)  // ✅ EAGER to load owner automatically
     @JoinColumn(name = "owner_id", referencedColumnName = "owner_id")
-    @JsonBackReference
+    @JsonProperty("owner")  // ✅ Include owner in JSON response
     private Owner owner;
+
+    // ✅ NEW: Transient field to accept owner_id from JSON requests
+    @Transient
+    @JsonProperty("owner_id")
+    private Long ownerIdForJson;
+
+    // ✅ NEW: Alternative field names for flexibility
+    @Transient
+    @JsonProperty("ownerId")
+    private Long ownerId;
+
+    @Transient
+    @JsonProperty("ownerIdForJson")
+    private Long ownerIdForJson2;
 
     public Pet() {
     }
@@ -105,6 +119,35 @@ public class Pet {
 
     public void setOwner(Owner owner) {
         this.owner = owner;
+    }
+
+    // ✅ NEW: Getters and setters for transient fields
+    public Long getOwnerIdForJson() {
+        if (ownerIdForJson != null) return ownerIdForJson;
+        if (ownerId != null) return ownerId;
+        if (ownerIdForJson2 != null) return ownerIdForJson2;
+        if (owner != null) return owner.getOwner_id();
+        return null;
+    }
+
+    public void setOwnerIdForJson(Long ownerIdForJson) {
+        this.ownerIdForJson = ownerIdForJson;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public Long getOwnerIdForJson2() {
+        return ownerIdForJson2;
+    }
+
+    public void setOwnerIdForJson2(Long ownerIdForJson2) {
+        this.ownerIdForJson2 = ownerIdForJson2;
     }
 
     @Override
