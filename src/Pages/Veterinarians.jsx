@@ -79,14 +79,12 @@ const Veterinarians = ({ vets, setVets }) => {
     
     try {
       setLoading(true);
-      // Note: You need to add this DELETE endpoint to your Spring Boot controller
       const res = await fetch(`http://localhost:8080/api/app/deleteVet/${item.vet_id}`, {
         method: 'DELETE',
       });
       
       if (!res.ok) throw new Error("Failed to delete veterinarian");
       
-      // Update local state
       setVets(vets.filter((v) => v.vet_id !== item.vet_id));
       alert("Veterinarian deleted successfully!");
     } catch (err) {
@@ -98,7 +96,6 @@ const Veterinarians = ({ vets, setVets }) => {
   };
 
   const handleSubmit = async (e) => {
-    // Check if e exists and has preventDefault
     if (e && e.preventDefault) {
       e.preventDefault();
     }
@@ -112,7 +109,6 @@ const Veterinarians = ({ vets, setVets }) => {
       setLoading(true);
       
       if (editing) {
-        // Update existing veterinarian
         const updatedVet = {
           vet_id: editing.vet_id,
           vet_name: form.vet_name,
@@ -137,11 +133,9 @@ const Veterinarians = ({ vets, setVets }) => {
         
         const data = await res.json();
         
-        // Update local state
         setVets(vets.map((v) => (v.vet_id === editing.vet_id ? data : v)));
         alert("Veterinarian updated successfully!");
       } else {
-        // Add new veterinarian
         const newVet = {
           vet_name: form.vet_name,
           specialization: form.specialization,
@@ -164,7 +158,6 @@ const Veterinarians = ({ vets, setVets }) => {
         
         const data = await res.json();
         
-        // Update local state
         setVets([...vets, data]);
         alert("Veterinarian added successfully!");
       }
@@ -186,7 +179,39 @@ const Veterinarians = ({ vets, setVets }) => {
 
   return (
     <div className="main-content page-container">
-      <h2 className="page-title">Veterinarians</h2>
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          🩺
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Veterinarians</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage veterinary staff and their specializations</p>
+        </div>
+      </div>
 
       {loading && <div className="loading-indicator">Loading...</div>}
 

@@ -131,18 +131,78 @@ export default function UserManagement() {
     <div style={styles.container}>
       <style>{styles.css}</style>
 
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.pageTitle}>
-            <span className="gradient-text">👥 User Management</span>
-          </h1>
-          <p style={styles.pageSubtitle}>Manage system administrators and users</p>
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '32px',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px'
+        }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px'
+          }}>
+            👥
+          </div>
+          <div>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              color: '#1a1a2e',
+              margin: '0'
+            }}>User Management</h2>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '4px 0 0 0'
+            }}>Manage system administrators and users</p>
+          </div>
         </div>
+        
+        {/* Updated Add User Button */}
         <button
           onClick={() => setShowAddUserForm(!showAddUserForm)}
-          style={styles.addUserBtn}
+          style={{
+            padding: '14px 28px',
+            background: showAddUserForm 
+              ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '12px',
+            fontWeight: '700',
+            fontSize: '15px',
+            cursor: 'pointer',
+            boxShadow: showAddUserForm
+              ? '0 4px 15px rgba(239, 68, 68, 0.3)'
+              : '0 4px 15px rgba(102, 126, 234, 0.3)',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
         >
-          {showAddUserForm ? '✕ Cancel' : '+ Add New User'}
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {showAddUserForm ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            )}
+          </svg>
+          {showAddUserForm ? 'Cancel' : 'Add New User'}
         </button>
       </div>
 
@@ -233,7 +293,12 @@ export default function UserManagement() {
             <div style={styles.userCardActions}>
               <button
                 onClick={() => handleDeleteUser(user.id, user.username)}
-                style={styles.deleteBtn}
+                style={{
+                  ...styles.deleteBtn,
+                  background: user.id === currentUser?.userId ? '#94a3b8' : '#ef4444',
+                  cursor: user.id === currentUser?.userId ? 'not-allowed' : 'pointer',
+                  opacity: user.id === currentUser?.userId ? 0.7 : 1
+                }}
                 disabled={user.id === currentUser?.userId}
               >
                 {user.id === currentUser?.userId ? '👤 You' : '🗑️ Delete'}
@@ -265,12 +330,6 @@ const styles = {
     }
     .fade-in {
       animation: fadeIn 0.4s ease-out;
-    }
-    .gradient-text {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
     .input-container {
       position: relative;
@@ -368,37 +427,6 @@ const styles = {
     margin: '0 auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '32px',
-    flexWrap: 'wrap',
-    gap: '16px'
-  },
-  pageTitle: {
-    fontSize: '36px',
-    fontWeight: '800',
-    marginBottom: '8px',
-    letterSpacing: '-0.5px'
-  },
-  pageSubtitle: {
-    fontSize: '15px',
-    color: '#64748b',
-    fontWeight: '500'
-  },
-  addUserBtn: {
-    padding: '14px 28px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontWeight: '700',
-    fontSize: '15px',
-    cursor: 'pointer',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-    transition: 'all 0.3s'
-  },
   addUserCard: {
     background: 'white',
     padding: '32px',
@@ -483,13 +511,10 @@ const styles = {
   },
   deleteBtn: {
     padding: '10px 20px',
-    background: '#ef4444',
-    color: 'white',
     border: 'none',
     borderRadius: '10px',
     fontWeight: '700',
     fontSize: '13px',
-    cursor: 'pointer',
     transition: 'all 0.3s'
   },
   emptyState: {

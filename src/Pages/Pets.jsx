@@ -103,7 +103,6 @@ const Pets = ({ pets, setPets, owners }) => {
       
       if (!res.ok) throw new Error("Failed to delete pet");
       
-      // Update local state
       setPets(pets.filter((p) => p.pet_id !== item.pet_id));
       alert("Pet deleted successfully!");
     } catch (err) {
@@ -115,7 +114,6 @@ const Pets = ({ pets, setPets, owners }) => {
   };
 
   const handleSubmit = async (e) => {
-    // Check if e exists and has preventDefault
     if (e && e.preventDefault) {
       e.preventDefault();
     }
@@ -133,7 +131,6 @@ const Pets = ({ pets, setPets, owners }) => {
     try {
       setLoading(true);
       
-      // Find the owner object
       const selectedOwner = owners.find(o => o.owner_id === Number(form.owner_id));
       
       if (!selectedOwner) {
@@ -142,7 +139,6 @@ const Pets = ({ pets, setPets, owners }) => {
       }
 
       if (editing) {
-        // Update existing pet
         const updatedPet = {
           pet_id: editing.pet_id,
           pet_name: form.pet_name,
@@ -160,7 +156,7 @@ const Pets = ({ pets, setPets, owners }) => {
           }
         };
 
-        console.log("Updating pet:", updatedPet); // Debug log
+        console.log("Updating pet:", updatedPet);
 
         const res = await fetch("http://localhost:8080/api/app/updatePet", {
           method: 'PUT',
@@ -177,20 +173,17 @@ const Pets = ({ pets, setPets, owners }) => {
         }
         
         const data = await res.json();
-        console.log("Updated pet response:", data); // Debug log
+        console.log("Updated pet response:", data);
         
-        // Add owner_name for display
         const petWithOwnerName = {
           ...data,
           ownerName: selectedOwner.owner_name,
           registered_date: data.registerd_date ? new Date(data.registerd_date).toISOString().split("T")[0] : ""
         };
         
-        // Update local state
         setPets(pets.map((p) => (p.pet_id === editing.pet_id ? petWithOwnerName : p)));
         alert("Pet updated successfully!");
       } else {
-        // Add new pet
         const newPet = {
           pet_name: form.pet_name,
           species: form.species,
@@ -207,7 +200,7 @@ const Pets = ({ pets, setPets, owners }) => {
           }
         };
 
-        console.log("Adding pet:", newPet); // Debug log
+        console.log("Adding pet:", newPet);
 
         const res = await fetch("http://localhost:8080/api/app/addPet", {
           method: 'POST',
@@ -224,16 +217,14 @@ const Pets = ({ pets, setPets, owners }) => {
         }
         
         const data = await res.json();
-        console.log("Added pet response:", data); // Debug log
+        console.log("Added pet response:", data);
         
-        // Add owner_name for display
         const petWithOwnerName = {
           ...data,
           ownerName: selectedOwner.owner_name,
           registered_date: data.registerd_date ? new Date(data.registerd_date).toISOString().split("T")[0] : ""
         };
         
-        // Update local state
         setPets([...pets, petWithOwnerName]);
         alert("Pet added successfully!");
       }
@@ -255,7 +246,39 @@ const Pets = ({ pets, setPets, owners }) => {
 
   return (
     <div className="main-content page-container">
-      <h2 className="page-title">Pets</h2>
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #0a0a0a, #1a0a2e)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          🐾
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Pets</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage pet registrations and information</p>
+        </div>
+      </div>
 
       {loading && <div className="loading-indicator">Loading...</div>}
 

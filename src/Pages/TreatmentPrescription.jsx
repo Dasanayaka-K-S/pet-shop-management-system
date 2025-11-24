@@ -87,7 +87,39 @@ const TreatmentPrescription = ({ treatments, setTreatments, appointments }) => {
 
   return (
     <div className="main-content page-container">
-      <h2 className="page-title">Treatment / Prescription</h2>
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          💊
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Treatment & Prescription</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage treatment records and prescribed medications</p>
+        </div>
+      </div>
 
       <DataTable
         title="Treatments"

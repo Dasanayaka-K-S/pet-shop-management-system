@@ -196,7 +196,7 @@ const styles = {
     }
 
     .gradient-text {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a0a2e 0%, #0a0a0a 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -212,7 +212,7 @@ const styles = {
   `,
   container: {
     padding: '32px',
-    maxWidth: '1400px',
+    maxWidth: '1600px',
     margin: '0 auto',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
@@ -232,13 +232,13 @@ const styles = {
     width: '70px',
     height: '70px',
     borderRadius: '16px',
-    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    background: 'linear-gradient(135deg, #0a0a0a, #1a0a2e)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.6)',
     animation: 'float 3s ease-in-out infinite',
-    border: '2px solid rgba(255, 255, 255, 0.2)'
+    border: '2px solid rgba(255, 255, 255, 0.15)'
   },
   iconTitle: {
     fontSize: '36px'

@@ -73,18 +73,12 @@ const Owners = ({ owners, setOwners }) => {
     
     try {
       setLoading(true);
-      // Note: Your backend doesn't have a delete endpoint yet
-      // You'll need to add this to your Spring Boot controller:
-      // @DeleteMapping("/deleteOwner/{id}")
-      // public void deleteOwner(@PathVariable Long id) { ownerService.deleteOwner(id); }
-      
       const res = await fetch(`http://localhost:8080/api/app/deleteOwner/${item.owner_id}`, {
         method: 'DELETE',
       });
       
       if (!res.ok) throw new Error("Failed to delete owner");
       
-      // Update local state
       setOwners(owners.filter((o) => o.owner_id !== item.owner_id));
       alert("Owner deleted successfully!");
     } catch (err) {
@@ -96,7 +90,6 @@ const Owners = ({ owners, setOwners }) => {
   };
 
   const handleSubmit = async (e) => {
-    // Check if e exists and has preventDefault
     if (e && e.preventDefault) {
       e.preventDefault();
     }
@@ -110,7 +103,6 @@ const Owners = ({ owners, setOwners }) => {
       setLoading(true);
       
       if (editing) {
-        // Update existing owner
         const updatedOwner = {
           owner_id: editing.owner_id,
           owner_name: form.owner_name,
@@ -132,12 +124,9 @@ const Owners = ({ owners, setOwners }) => {
         if (!res.ok) throw new Error("Failed to update owner");
         
         const data = await res.json();
-        
-        // Update local state
         setOwners(owners.map((o) => (o.owner_id === editing.owner_id ? data : o)));
         alert("Owner updated successfully!");
       } else {
-        // Add new owner
         const newOwner = {
           owner_name: form.owner_name,
           owner_email: form.owner_email,
@@ -157,8 +146,6 @@ const Owners = ({ owners, setOwners }) => {
         if (!res.ok) throw new Error("Failed to save owner");
         
         const data = await res.json();
-        
-        // Update local state
         setOwners([...owners, data]);
         alert("Owner added successfully!");
       }
@@ -181,7 +168,39 @@ const Owners = ({ owners, setOwners }) => {
 
   return (
     <div className="main-content page-container">
-      <h2 className="page-title">Owners</h2>
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #0a0a0a, #1a0a2e)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          👥
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Owners</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage pet owners and their contact information</p>
+        </div>
+      </div>
 
       {loading && <div className="loading-indicator">Loading...</div>}
 
