@@ -187,6 +187,106 @@ const App = () => {
   // ✅ If logged in, show the main app
   return (
     <>
+      <style>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .navigation {
+          position: sticky;
+          top: 0;
+          z-index: 999;
+          background: linear-gradient(-45deg, #0a0a0a, #1a0a2e, #16213e, #0f3460);
+          background-size: 400% 400%;
+          animation: gradientShift 15s ease infinite;
+          padding: 0;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 0 2rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .nav-tabs {
+          display: flex;
+          gap: 8px;
+          padding: 16px 0;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .nav-tab {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.9);
+          padding: 12px 24px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          letter-spacing: 0.3px;
+          animation: slideIn 0.4s ease-out;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-tab.active {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          border-color: transparent;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          transform: translateY(-2px);
+        }
+
+        .nav-tab.active:hover {
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        @media (max-width: 768px) {
+          .nav-tabs {
+            gap: 6px;
+            padding: 12px 0;
+          }
+
+          .nav-tab {
+            padding: 10px 16px;
+            font-size: 13px;
+          }
+
+          .nav-container {
+            padding: 0 1rem;
+          }
+        }
+      `}</style>
+
       <Header currentUser={currentUser} onLogout={handleLogout} />
 
       {/* Sticky navigation bar */}

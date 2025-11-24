@@ -56,7 +56,7 @@ const Header = ({ currentUser, onLogout }) => {
           position: sticky;
           top: 0;
           z-index: 1000;
-          background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+          background: linear-gradient(-45deg, #0a0a0a, #1a0a2e, #16213e, #0f3460);
           background-size: 400% 400%;
           animation: gradientShift 15s ease infinite;
           padding: 1.5rem 0;

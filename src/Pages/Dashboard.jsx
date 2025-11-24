@@ -10,25 +10,25 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
       label: "Total Owners", 
       value: owners?.length || 0, 
       icon: "👥",
-      color: "#667eea"
+      gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%)"
     },
     { 
       label: "Total Pets", 
       value: pets?.length || 0, 
       icon: "🐾",
-      color: "#10b981"
+      gradient: "linear-gradient(135deg, #0f3460 0%, #16213e 100%)"
     },
     { 
       label: "Veterinarians", 
       value: vets?.length || 0, 
       icon: "⚕️",
-      color: "#8b5cf6"
+      gradient: "linear-gradient(135deg, #1a0a2e 0%, #0a0a0a 100%)"
     },
     { 
       label: "Appointments", 
       value: appointments?.length || 0, 
       icon: "📅",
-      color: "#f59e0b"
+      gradient: "linear-gradient(135deg, #16213e 0%, #1a0a2e 100%)"
     },
   ];
 
@@ -43,20 +43,25 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
 
       {/* Header */}
       <div style={styles.header}>
-        <div>
-          <h1 style={styles.pageTitle}>
-            <span className="gradient-text">📊 Dashboard</span>
-          </h1>
-          <p style={styles.pageSubtitle}>Welcome back! Here's what's happening today</p>
+        <div style={styles.titleWrapper}>
+          <div style={styles.iconWrapper}>
+            <span style={styles.iconTitle}>📊</span>
+          </div>
+          <div>
+            <h1 style={styles.pageTitle}>
+              <span className="gradient-text">Dashboard</span>
+            </h1>
+            <p style={styles.pageSubtitle}>Welcome back! Here's what's happening today</p>
+          </div>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div style={styles.statsGrid}>
         {stats.map((stat, idx) => (
-          <div key={stat.label} className="stat-card" style={styles.statCard}>
+          <div key={stat.label} className="stat-card" style={{...styles.statCard, background: stat.gradient}}>
             <div style={styles.statHeader}>
-              <div style={{...styles.statIconWrapper, background: stat.color}}>
+              <div style={styles.statIconWrapper}>
                 <span style={styles.statIcon}>{stat.icon}</span>
               </div>
             </div>
@@ -135,7 +140,7 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
 
           <div style={styles.statusList}>
             <div style={styles.statusItem}>
-              <div style={{...styles.statusIcon, background: 'rgba(59, 130, 246, 0.1)'}}>
+              <div style={{...styles.statusIcon, background: 'rgba(102, 126, 234, 0.2)'}}>
                 <span style={{fontSize: '28px'}}>🕐</span>
               </div>
               <div style={styles.statusContent}>
@@ -145,7 +150,7 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
             </div>
 
             <div style={styles.statusItem}>
-              <div style={{...styles.statusIcon, background: 'rgba(16, 185, 129, 0.1)'}}>
+              <div style={{...styles.statusIcon, background: 'rgba(16, 185, 129, 0.2)'}}>
                 <span style={{fontSize: '28px'}}>✅</span>
               </div>
               <div style={styles.statusContent}>
@@ -155,7 +160,7 @@ const Dashboard = ({ owners, pets, vets, appointments, getPetName, getVetName })
             </div>
 
             <div style={styles.statusItem}>
-              <div style={{...styles.statusIcon, background: 'rgba(239, 68, 68, 0.1)'}}>
+              <div style={{...styles.statusIcon, background: 'rgba(239, 68, 68, 0.2)'}}>
                 <span style={{fontSize: '28px'}}>❌</span>
               </div>
               <div style={styles.statusContent}>
@@ -184,6 +189,12 @@ const styles = {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
     .gradient-text {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
@@ -196,7 +207,7 @@ const styles = {
     }
     .stat-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4) !important;
     }
   `,
   container: {
@@ -209,7 +220,28 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '32px'
+    marginBottom: '32px',
+    animation: 'fadeIn 0.6s ease-out'
+  },
+  titleWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px'
+  },
+  iconWrapper: {
+    width: '70px',
+    height: '70px',
+    borderRadius: '16px',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+    animation: 'float 3s ease-in-out infinite',
+    border: '2px solid rgba(255, 255, 255, 0.2)'
+  },
+  iconTitle: {
+    fontSize: '36px'
   },
   pageTitle: {
     fontSize: '36px',
@@ -229,11 +261,11 @@ const styles = {
     marginBottom: '32px'
   },
   statCard: {
-    background: 'white',
     borderRadius: '16px',
     padding: '24px',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+    color: 'white'
   },
   statHeader: {
     marginBottom: '16px'
@@ -245,7 +277,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
   },
   statIcon: {
     fontSize: '28px'
@@ -254,13 +289,13 @@ const styles = {
   statValue: {
     fontSize: '32px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'white',
     marginBottom: '4px',
     margin: '0 0 4px 0'
   },
   statLabel: {
     fontSize: '14px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
     margin: 0
   },
@@ -271,18 +306,20 @@ const styles = {
     marginBottom: '24px'
   },
   largeCard: {
-    background: 'white',
+    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%)',
     borderRadius: '16px',
     padding: '28px',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+    color: 'white'
   },
   statusCard: {
-    background: 'white',
+    background: 'linear-gradient(135deg, #16213e 0%, #0f3460 100%)',
     borderRadius: '16px',
     padding: '28px',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+    color: 'white'
   },
   cardHeader: {
     marginBottom: '24px'
@@ -290,13 +327,13 @@ const styles = {
   cardTitle: {
     fontSize: '18px',
     fontWeight: '700',
-    color: '#0f172a',
+    color: 'white',
     marginBottom: '4px',
     margin: '0 0 4px 0'
   },
   cardSubtitle: {
     fontSize: '13px',
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '500',
     margin: 0
   },
@@ -311,8 +348,9 @@ const styles = {
     alignItems: 'center',
     padding: '16px',
     borderRadius: '12px',
-    border: '1px solid #f1f5f9',
-    background: '#fafafa',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
     transition: 'all 0.3s'
   },
   appointmentLeft: {
@@ -350,13 +388,13 @@ const styles = {
   petName: {
     fontSize: '15px',
     fontWeight: '700',
-    color: '#0f172a',
+    color: 'white',
     marginBottom: '4px',
     margin: '0 0 4px 0'
   },
   reason: {
     fontSize: '13px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: '6px',
     fontWeight: '500',
     margin: '0 0 6px 0'
@@ -368,7 +406,7 @@ const styles = {
   },
   metaItem: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '500'
   },
   appointmentRight: {},
@@ -377,8 +415,9 @@ const styles = {
     borderRadius: '8px',
     fontSize: '12px',
     fontWeight: '600',
-    background: 'rgba(59, 130, 246, 0.1)',
-    color: '#2563eb'
+    background: 'rgba(102, 126, 234, 0.2)',
+    color: '#a5b4fc',
+    border: '1px solid rgba(102, 126, 234, 0.3)'
   },
   emptyState: {
     textAlign: 'center',
@@ -391,7 +430,7 @@ const styles = {
   },
   emptyText: {
     fontSize: '14px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '600',
     margin: 0
   },
@@ -405,7 +444,9 @@ const styles = {
     gap: '16px',
     padding: '16px',
     borderRadius: '12px',
-    background: '#fafafa'
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)'
   },
   statusIcon: {
     width: '56px',
@@ -414,14 +455,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0
+    flexShrink: 0,
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)'
   },
   statusContent: {
     flex: 1
   },
   statusLabel: {
     fontSize: '13px',
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '600',
     marginBottom: '4px',
     margin: '0 0 4px 0'
@@ -429,15 +472,16 @@ const styles = {
   statusValue: {
     fontSize: '24px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'white',
     margin: 0
   },
   welcomeCard: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #16213e 100%)',
     padding: '40px',
     borderRadius: '16px',
     color: 'white',
-    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)'
+    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
+    border: '1px solid rgba(255, 255, 255, 0.1)'
   },
   welcomeTitle: {
     fontSize: '28px',
