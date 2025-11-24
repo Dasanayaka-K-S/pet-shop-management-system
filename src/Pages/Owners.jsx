@@ -77,7 +77,15 @@ const Owners = ({ owners, setOwners }) => {
     }
   };
 
+<<<<<<< HEAD
   const handleSubmit = async () => {
+=======
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
     if (!form.owner_name.trim()) {
       alert("Name is required");
       return;
@@ -147,7 +155,43 @@ const Owners = ({ owners, setOwners }) => {
 
   return (
     <div className="main-content page-container">
+<<<<<<< HEAD
       <h2 className="page-title">👤 Owners</h2>
+=======
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #0a0a0a, #1a0a2e)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          👥
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Owners</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage pet owners and their contact information</p>
+        </div>
+      </div>
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
 
       <div className="data-table">
         <div className="table-header">

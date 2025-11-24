@@ -77,7 +77,10 @@ const Pets = ({ pets, setPets, owners }) => {
         throw new Error(errorText);
       }
       
+<<<<<<< HEAD
       // Remove from local state
+=======
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
       setPets(pets.filter((p) => p.pet_id !== item.pet_id));
       alert("✅ Pet deleted successfully!");
     } catch (err) {
@@ -88,8 +91,16 @@ const Pets = ({ pets, setPets, owners }) => {
     }
   };
 
+<<<<<<< HEAD
   const handleSubmit = async () => {
     // Validation
+=======
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
     if (!form.pet_name.trim()) {
       alert("❌ Pet name is required!");
       return;
@@ -103,6 +114,7 @@ const Pets = ({ pets, setPets, owners }) => {
     try {
       setLoading(true);
       
+<<<<<<< HEAD
       // ✅ Prepare data to match backend Pet entity
       const petData = {
         pet_name: form.pet_name.trim(),
@@ -122,6 +134,35 @@ const Pets = ({ pets, setPets, owners }) => {
         
         console.log("✏️ Updating pet:", petData);
         
+=======
+      const selectedOwner = owners.find(o => o.owner_id === Number(form.owner_id));
+      
+      if (!selectedOwner) {
+        alert("Invalid owner selected");
+        return;
+      }
+
+      if (editing) {
+        const updatedPet = {
+          pet_id: editing.pet_id,
+          pet_name: form.pet_name,
+          species: form.species,
+          breed: form.breed,
+          age: Number(form.age) || 0,
+          gender: form.gender,
+          registerd_date: form.registered_date,
+          owner: {
+            owner_id: selectedOwner.owner_id,
+            owner_name: selectedOwner.owner_name,
+            contact_number: selectedOwner.contact_number,
+            email: selectedOwner.email,
+            address: selectedOwner.address
+          }
+        };
+
+        console.log("Updating pet:", updatedPet);
+
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
         const res = await fetch("http://localhost:8080/api/app/updatePet", {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -134,6 +175,7 @@ const Pets = ({ pets, setPets, owners }) => {
           throw new Error(`Update failed: ${errorText}`);
         }
         
+<<<<<<< HEAD
         const updatedPet = await res.json();
         console.log("✅ Updated pet:", updatedPet);
         
@@ -146,6 +188,38 @@ const Pets = ({ pets, setPets, owners }) => {
         // ✅ ADD NEW: Use /addPet endpoint (not /savePet)
         console.log("➕ Adding new pet:", petData);
         
+=======
+        const data = await res.json();
+        console.log("Updated pet response:", data);
+        
+        const petWithOwnerName = {
+          ...data,
+          ownerName: selectedOwner.owner_name,
+          registered_date: data.registerd_date ? new Date(data.registerd_date).toISOString().split("T")[0] : ""
+        };
+        
+        setPets(pets.map((p) => (p.pet_id === editing.pet_id ? petWithOwnerName : p)));
+        alert("Pet updated successfully!");
+      } else {
+        const newPet = {
+          pet_name: form.pet_name,
+          species: form.species,
+          breed: form.breed,
+          age: Number(form.age) || 0,
+          gender: form.gender,
+          registerd_date: form.registered_date,
+          owner: {
+            owner_id: selectedOwner.owner_id,
+            owner_name: selectedOwner.owner_name,
+            contact_number: selectedOwner.contact_number,
+            email: selectedOwner.email,
+            address: selectedOwner.address
+          }
+        };
+
+        console.log("Adding pet:", newPet);
+
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
         const res = await fetch("http://localhost:8080/api/app/addPet", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -158,6 +232,7 @@ const Pets = ({ pets, setPets, owners }) => {
           throw new Error(`Save failed: ${errorText}`);
         }
         
+<<<<<<< HEAD
         const savedPet = await res.json();
         console.log("✅ Saved pet:", savedPet);
         
@@ -165,6 +240,19 @@ const Pets = ({ pets, setPets, owners }) => {
         setPets([...pets, savedPet]);
         alert("🎉 Pet added successfully!");
         setModalOpen(false);
+=======
+        const data = await res.json();
+        console.log("Added pet response:", data);
+        
+        const petWithOwnerName = {
+          ...data,
+          ownerName: selectedOwner.owner_name,
+          registered_date: data.registerd_date ? new Date(data.registerd_date).toISOString().split("T")[0] : ""
+        };
+        
+        setPets([...pets, petWithOwnerName]);
+        alert("Pet added successfully!");
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
       }
 
       // Refresh pets list to get updated data from backend
@@ -204,7 +292,43 @@ const Pets = ({ pets, setPets, owners }) => {
 
   return (
     <div className="main-content page-container">
+<<<<<<< HEAD
       <h2 className="page-title">🐾 Pets Management</h2>
+=======
+      {/* Updated Title Section with Icon */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          background: 'linear-gradient(135deg, #0a0a0a, #1a0a2e)',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px'
+        }}>
+          🐾
+        </div>
+        <div>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: '#1a1a2e',
+            margin: '0'
+          }}>Pets</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Manage pet registrations and information</p>
+        </div>
+      </div>
+>>>>>>> 29cf541a7f7b132c06dca9aadf53e59864437895
 
       <div className="data-table">
         <div className="table-header">
